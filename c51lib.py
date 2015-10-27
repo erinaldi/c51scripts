@@ -278,15 +278,77 @@ def scatter_plot(x, data_gv, title='default title', xlabel='x', ylabel='y', xlim
 	return 0
 
 def stability_plot(fittbl, key, title=''):
+    # tmin stability plot
     if fittbl['tmin'][-1]-fittbl['tmin'][0] > 0:
-        x = fittbl['tmin']
-        y = np.array([data[key] for data in fittbl['post']])
-        scatter_plot(x, y, title+' tmin stability plot', 'tmin (tmax='+str(fittbl['tmax'][0])+')', key, xlim=[x[0]-0.5,x[-1]+0.5])
+        if fittbl['tmax'][-1]-fittbl['tmax'][0] > 0:
+            output = []
+            for t in range(len(fittbl['tmin'])):
+                output.append((fittbl['tmin'][t], fittbl['tmax'][t], fittbl['post'][t][key]))
+            dtype = [('tmin', int), ('tmax', int), ('post', gv._gvarcore.GVar)]
+            output = np.array(output, dtype=dtype)
+            output = np.sort(output, order='tmax')
+            setwidth = fittbl['tmin'][-1]-fittbl['tmin'][0]+1
+            fig = plt.figure()
+            ax1 = fig.add_subplot(111)
+            for subset in range(len(output)/setwidth):
+                pltdata = output[setwidth*subset:setwidth*(subset+1)]
+                x = [pltdata[i][0] for i in range(len(pltdata))]
+                y = [pltdata[i][2] for i in range(len(pltdata))]
+                y_plt = np.array([dat.mean for dat in y])
+                e_plt = np.array([dat.sdev for dat in y])
+                ax1.errorbar(x, y_plt, e_plt, label='tmax: '+str(pltdata[0][1]))
+            plt.title(title+' tmax stability plot')
+            plt.xlabel('tmin')
+            plt.ylabel(key)
+            plt.xlim(x[0]-0.5, x[-1]+0.5)
+            plt.legend()
+        else:
+            x = fittbl['tmin']
+            y = np.array([data[key] for data in fittbl['post']])
+            scatter_plot(x, y, title+' tmin stability plot', 'tmin (tmax='+str(fittbl['tmax'][0])+')', key, xlim=[x[0]-0.5,x[-1]+0.5])
+    # tmax stability plot
     if fittbl['tmax'][-1]-fittbl['tmax'][0] > 0:
-        x = fittbl['tmax']
-        y = np.array([data[key] for data in fittbl['post']])
-        scatter_plot(x, y, title+' tmax stability plot', 'tmax (tmin='+str(fittbl['tmin'][0])+')', key, xlim=[x[0]-0.5,x[-1]+0.5])
+        if fittbl['tmin'][-1]-fittbl['tmin'][0] > 0:
+            output = []
+            for t in range(len(fittbl['tmin'])):
+                output.append((fittbl['tmin'][t], fittbl['tmax'][t], fittbl['post'][t][key]))
+            dtype = [('tmin', int), ('tmax', int), ('post', gv._gvarcore.GVar)]
+            output = np.array(output, dtype=dtype)
+            output = np.sort(output, order='tmin')
+            setwidth = fittbl['tmax'][-1]-fittbl['tmax'][0]+1
+            fig = plt.figure()
+            ax1 = fig.add_subplot(111)
+            for subset in range(len(output)/setwidth):
+                pltdata = output[setwidth*subset:setwidth*(subset+1)]
+                x = [pltdata[i][1] for i in range(len(pltdata))]
+                y = [pltdata[i][2] for i in range(len(pltdata))]
+                y_plt = np.array([dat.mean for dat in y])
+                e_plt = np.array([dat.sdev for dat in y])
+                ax1.errorbar(x, y_plt, e_plt, label='tmin: '+str(pltdata[0][0]))
+            plt.title(title+' tmin stability plot')
+            plt.xlabel('tmax')
+            plt.ylabel(key)
+            plt.xlim(x[0]-0.5, x[-1]+0.5)
+            plt.legend()
+        else:
+            x = fittbl['tmax']
+            y = np.array([data[key] for data in fittbl['post']])
+            scatter_plot(x, y, title+' tmax stability plot', 'tmax (tmin='+str(fittbl['tmin'][0])+')', key, xlim=[x[0]-0.5,x[-1]+0.5])
     else: print key,':',fittbl['post'][0][key]
+    return 0
+
+def histogram_plot(fittbl, key=None, xlabel=''):
+    plt.figure()
+    if key == None:
+        bs_mean = fittbl
+    else:
+        bs_mean = np.array([fittbl[i]['post'][j][key].mean for i in range(len(fittbl)) for j in range(len(fittbl[i]['post']))])
+    n, bins, patches = plt.hist(bs_mean, 50, facecolor='green')
+    x = np.delete(bins, -1)
+    plt.plot(x, n)
+    plt.xlabel(xlabel)
+    plt.ylabel('counts')
+    plt.draw()
     return 0
 
 def find_yrange(data, pltxmin, pltxmax):

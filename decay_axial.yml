@@ -1,0 +1,51 @@
+#parameter file for decay constant fits
+current_fit:
+    ens: 'l2448f211b580m0064m0640m828'
+    ml: 0.00712
+    ms: 0.0902
+l2448f211b580m0064m0640m828:
+    0.00712_0.0902:
+        data_loc:
+            file_loc: '/Users/cchang5/c51/data/l2448f211b580m0064m0640m828a_avg.h5'
+            cfgs_srcs: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0902/cfgs_srcs'
+            mres_pion_mp: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00712/midpoint_pseudo'
+            mres_pion_pp: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00712/pseudo_pseudo'
+            mres_etas_mp: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0902/midpoint_pseudo'
+            mres_etas_pp: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0902/pseudo_pseudo'
+            axial_ll: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00712_ms0p0902/axial_ll/corr'
+            axial_ls: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00712_ms0p0902/axial_ls/corr'
+            pion_corr: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00712_ms0p0902/pion/corr'
+            kaon_corr: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00712_ms0p0902/kaon/corr'
+        priors:
+            etas:
+                mres: [0.007, 0.004]
+            pion:
+                #mres: [0.001, 0.0005]
+                Z0_s: [0.031, 0.01]
+                Z1_s: [0.015, 0.015]
+                #Z2_s: [0.025, 0.025]
+                #Z0_p: [0.27, 0.07]
+                #Z1_p: [0.27, 0.17]
+                #Z2_p: [0.27, 0.27]
+                E0: [0.16, 0.005]
+                E1: [0.0, 5.0]
+                #E2: [0.0, 1.0]
+                F0: [-0.0307, 0.001]
+                F1: [0.0, 1.0]
+                #F2: [0.0, 1.0]
+            kaon:
+                Z0_s: [0.02, 0.01]
+                Z1_s: [0.01, 0.01]
+                #Z2_s: [0.02, 0.02]
+                #Z0_p: [0.2, 0.05]
+                #Z1_p: [0.2, 0.1]
+                #Z2_p: [0.2, 0.2]
+                E0: [0.38, 0.05]
+                E1: [0.0, 1.0]
+                #E2: [0.0, 1.0]
+                F0: [-0.037, 0.037]
+                F1: [0.0, 1.0]
+                #F2: [0.0, 1.0]
+        trange:
+            tmin: [4, 5]
+            tmax: [18, 20]
