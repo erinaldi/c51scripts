@@ -110,13 +110,6 @@ def decay_fit(args):
     result_E = np.append(g, [fit['post'][i]['E0'].mean for i in range(len(fit['tmax']))])
     return result_Z, result_E
 
-def bs_draws(params, nbs):
-    ens = params['current_fit']['ens']
-    loc = params[ens]['data_loc']
-    cfgs = len(c51.open_data(loc['file_loc'], loc['cfgs_srcs']))
-    draws = np.random.randint(cfgs, size=(nbs, cfgs))
-    return draws
-
 def decay_constant(params, decay, mres_pion, mres_etas='pion'):
     ml = params['current_fit']['ml']
     ms = params['current_fit']['ms']
@@ -132,13 +125,12 @@ def decay_constant(params, decay, mres_pion, mres_etas='pion'):
 
 if __name__=='__main__':
     #Read parameters
-    f = open('./decay.yml','r')
+    f = open('./decay_ward.yml','r')
     params = yaml.load(f)
     f.close()
-
     #Generate bootstrap list
-    draws = bs_draws(params, 1000)
-
+    draw_n = 2
+    draws = c51.bs_draws(params, draw_n)
     #Bootstrap mres
     mres_pion = mres_bs(params, 'pion', draws)
     mres_etas = mres_bs(params, 'etas', draws)
