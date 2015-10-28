@@ -85,6 +85,24 @@ def bs_draws(params, nbs):
     draws = np.concatenate((boot0, draws), axis=0)
     return draws
 
+class process_bootstrap():
+    def __init__(self, fittbl):
+        self.fittbl_boot0 = fittbl[0, 1]
+        self.fittbl_bs = fittbl[1:, 1]
+        self.tmin = self.fittbl_boot0['tmin']
+        self.tmax = self.fittbl_boot0['tmax']
+    def __call__(self):
+        return self.fittbl_boot0, self.fittbl_bs
+    def read_boot0(self, key):
+        boot0 = np.array([self.fittbl_boot0['post'][i][key].mean for i in range(len(self.fittbl_boot0['post']))])
+        return boot0
+    def read_boot0_sdev(self, key):
+        boot0_sdev = np.array([self.fittbl_boot0['post'][i][key].sdev for i in range(len(self.fittbl_boot0['post']))])
+        return boot0_sdev
+    def read_bs(self, key):
+        bs = np.array([self.fittbl_bs[i]['post'][j][key].mean for i in range(len(self.fittbl_bs)) for j in range(len(self.fittbl_bs[i]['post']))])
+        return bs
+
 ###    `. ---)..(
 ###      ||||(,o)
 ###      "`'" \__/
