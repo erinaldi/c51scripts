@@ -99,8 +99,10 @@ class process_bootstrap():
     def read_boot0_sdev(self, key):
         boot0_sdev = np.array([self.fittbl_boot0['post'][i][key].sdev for i in range(len(self.fittbl_boot0['post']))])
         return boot0_sdev
-    def read_bs(self, key):
+    def read_bs(self, key, reshape_flag='off'):
         bs = np.array([self.fittbl_bs[i]['post'][j][key].mean for i in range(len(self.fittbl_bs)) for j in range(len(self.fittbl_bs[i]['post']))])
+        if reshape_flag == 'on':
+            bs = bs.reshape((len(bs)/len(self.tmin),len(self.tmin)))
         return bs
 
 ###    `. ---)..(

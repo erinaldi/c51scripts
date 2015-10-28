@@ -90,7 +90,7 @@ if __name__=='__main__':
     f.close()
     # bootstrap draws
     # if draw number = 0, draws boot0
-    draw_n = 10
+    draw_n = 1000
     draws = c51.bs_draws(params, draw_n)
     # bootstrap axial_ll
     fpi = decay_axial(params, 'pion', draws, plot_flag='off')
@@ -118,6 +118,7 @@ if __name__=='__main__':
     E0_pi = fpi_proc.read_boot0('E0')
     F0_k = fk_proc.read_boot0('F0')
     E0_k = fk_proc.read_boot0('E0')
+    # calculate decay constant
     fpi = -1.0*F0_pi*np.sqrt(2.0/E0_pi)
     fk = -1.0*F0_k*np.sqrt(2.0/E0_k)
     table_print = collections.OrderedDict()
