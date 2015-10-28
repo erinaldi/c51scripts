@@ -1,54 +1,48 @@
+import sys
+sys.path.append('$HOME/c51/scripts/')
 import c51lib as c51
 import numpy as np
 import h5py as h5
 import matplotlib.pyplot as plt
 import gvar as gv
 import multiprocessing as multi
-import mres
-import decay
+from tabulate import tabulate
 import yaml
+import collections
 
 def mres_bs(params, meson, draws):
     ens = params['current_fit']['ens']
     ml = params['current_fit']['ml']
     ms = params['current_fit']['ms']
-    loc = params[ens]['data_loc']
-
+    loc = params[ens][str(ml)+'_'+str(ms)]['data_loc']
     #Read data
     mp = c51.fold(c51.open_data(loc['file_loc'], loc['mres_'+meson+'_mp']))
     pp = c51.fold(c51.open_data(loc['file_loc'], loc['mres_'+meson+'_pp']))
+    T = 2*len(pp)
     mres_dat = mp/pp
-
     #Read priors
-    prior = params[ens][str(ml)+'_'+str(ms)]['mres_'+meson]
-
+    prior = params[ens][str(ml)+'_'+str(ms)]['priors'][meson]
     #Read trange
-    trange = params[ens]['trange']
-
+    trange = params[ens][str(ml)+'_'+str(ms)]['trange']
     #Fit
-    args = ((g, trange, mres_dat, prior, draws) for g in range(len(draws)))
+    args = ((g, trange, T, mres_dat, prior, draws) for g in range(len(draws)))
     pool = multi.Pool()
     p = pool.map_async(mres_fit, args)
-    output = np.array(p.get())
-    output = np.transpose(output[np.argsort(output[:,0])]) #Sort by bootstrap number
-    #Flatten into a 1D array
-    output = np.ravel(output[1:])
+    # sort by bootstrap number
+    output = np.sort(np.array(p.get()), axis=0)
     return output
 
 def mres_fit(args):
-    g, trange, mres_dat, prior, draws = args
-
+    g, trange, T, mres_dat, prior, draws = args
     #Resample mres data
     mres_dat_bs = mres_dat[draws[g]]
     mres_dat_bs = c51.make_gvars(mres_dat_bs)
-
     #Randomize priors
-    p = {'mres': gv.gvar(prior[0]+prior[1]*np.random.randn(), prior[1])}
-
+    bsp = c51.dict_of_tuple_to_gvar(prior) #{'mres': gv.gvar(prior[0]+prior[1]*np.random.randn(), prior[1])}
     #Fit
-    fit = c51.fitscript(trange, mres_dat_bs, p, c51.mres_fitfcn)
-    result = np.append(g, [fit['post'][i]['mres'].mean for i in range(len(fit['tmax']))])
-  
+    fitfcn = c51.fit_function(T)
+    fit = c51.fitscript_v2(trange, T, mres_dat_bs, bsp, fitfcn.mres_fitfcn, result_flag='off')
+    result = [g, fit]
     return result
 
 def decay_bs(params, meson, draws):
@@ -124,20 +118,31 @@ def decay_constant(params, decay, mres_pion, mres_etas='pion'):
     return constant
 
 if __name__=='__main__':
-    #Read parameters
+    mres_tbl_flag = 'on'
+    # read parameters
     f = open('./decay_ward.yml','r')
     params = yaml.load(f)
     f.close()
-    #Generate bootstrap list
+    # generate bootstrap list
     draw_n = 2
     draws = c51.bs_draws(params, draw_n)
-    #Bootstrap mres
-    mres_pion = mres_bs(params, 'pion', draws)
-    mres_etas = mres_bs(params, 'etas', draws)
-    print "mres_pion:", np.average(mres_pion)
-    print "mres_etas:", np.average(mres_etas)
-
-    #Bootstrap decay constant
+    # bootstrap mres
+    mres_pion_fit = mres_bs(params, 'pion', draws)
+    mres_etas_fit = mres_bs(params, 'etas', draws)
+    # process bootstrap
+    mres_pion_proc = c51.process_bootstrap(mres_pion_fit)
+    mres_etas_proc = c51.process_bootstrap(mres_etas_fit)
+    # print results
+    if mres_tbl_flag == 'on':
+        tbl_print = collections.OrderedDict()
+        tbl_print['tmin'] = mres_pion_proc.tmin
+        tbl_print['tmax'] = mres_pion_proc.tmax
+        tbl_print['mres_pion_boot0'] = mres_pion_proc.read_boot0('mres')
+        tbl_print['mres_pion_sdev'] = mres_pion_proc.read_boot0_sdev('mres')
+        tbl_print['mres_etas_boot0'] = mres_etas_proc.read_boot0('mres')
+        tbl_print['mres_etas_sdev'] = mres_etas_proc.read_boot0_sdev('mres')
+        print tabulate(tbl_print, headers='keys')
+    # bootstrap decay constant
     decay_pion = decay_bs(params, 'pion', draws)
     decay_kaon = decay_bs(params, 'kaon', draws)
 
