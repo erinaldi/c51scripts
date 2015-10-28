@@ -90,33 +90,34 @@ if __name__=='__main__':
     f.close()
     # bootstrap draws
     # if draw number = 0, draws boot0
-    draw_n = 1000
+    draw_n = 10
     draws = c51.bs_draws(params, draw_n)
     # bootstrap axial_ll
     fpi = decay_axial(params, 'pion', draws, plot_flag='off')
     # bootstrap axial_ls
     fk = decay_axial(params, 'kaon', draws, plot_flag='off')
-    # process output
-    fpi_boot0 = fpi[0,1]
-    fk_boot0 = fk[0,1]
-    fpi_bs = fpi[1:,1]
-    fk_bs = fk[1:,1]
+    # process output and plot distribution
+    fpi_proc = c51.process_bootstrap(fpi)
+    fk_proc = c51.process_bootstrap(fk)
+    fpi_boot0, fpi_bs = fpi_proc()
+    fk_boot0, fk_bs = fk_proc()
+    print fpi_boot0
     if bootstrap_histo_flag == 'on':
         c51.histogram_plot(fpi_bs, 'F0', 'pion F0')
         c51.histogram_plot(fpi_bs, 'E0', 'pion E0')
         c51.histogram_plot(fk_bs, 'F0', 'kaon F0')
         c51.histogram_plot(fk_bs, 'E0', 'kaon F0')
-    # plot stability
+    # plot stability for boot0 fits
     if stab_plot_flag == 'on':
         c51.stability_plot(fpi_boot0, 'F0', 'boot0 fpi')
         c51.stability_plot(fpi_boot0, 'E0', 'boot0 m_pi')
         c51.stability_plot(fk_boot0, 'F0', 'boot0 fk')
         c51.stability_plot(fk_boot0, 'E0', 'boot0 m_k')
     # boot0 result
-    F0_pi = np.array([fpi_boot0['post'][i]['F0'] for i in range(len(fpi_boot0['post']))])
-    E0_pi = np.array([fpi_boot0['post'][i]['E0'] for i in range(len(fpi_boot0['post']))])
-    F0_k = np.array([fk_boot0['post'][i]['F0'] for i in range(len(fk_boot0['post']))])
-    E0_k = np.array([fk_boot0['post'][i]['E0'] for i in range(len(fpi_boot0['post']))])
+    F0_pi = fpi_proc.read_boot0('F0') 
+    E0_pi = fpi_proc.read_boot0('E0')
+    F0_k = fk_proc.read_boot0('F0')
+    E0_k = fk_proc.read_boot0('E0')
     fpi = -1.0*F0_pi*np.sqrt(2.0/E0_pi)
     fk = -1.0*F0_k*np.sqrt(2.0/E0_k)
     table_print = collections.OrderedDict()
@@ -127,23 +128,23 @@ if __name__=='__main__':
     table_print['fk/fpi'] = fk/fpi
     print tabulate(table_print, headers='keys')
     # bootstrap errors
-    F0_pi_bs_mean = np.array([fpi_bs[i]['post'][j]['F0'].mean for i in range(len(fpi_bs)) for j in range(len(fpi_bs[i]['post']))])
-    E0_pi_bs_mean = np.array([fpi_bs[i]['post'][j]['E0'].mean for i in range(len(fpi_bs)) for j in range(len(fpi_bs[i]['post']))])
-    F0_k_bs_mean = np.array([fk_bs[i]['post'][j]['F0'].mean for i in range(len(fk_bs)) for j in range(len(fk_bs[i]['post']))])
-    E0_k_bs_mean = np.array([fk_bs[i]['post'][j]['E0'].mean for i in range(len(fk_bs)) for j in range(len(fk_bs[i]['post']))])
+    F0_pi_bs_mean = fpi_proc.read_bs('F0') 
+    E0_pi_bs_mean = fpi_proc.read_bs('E0')
+    F0_k_bs_mean = fk_proc.read_bs('F0')
+    E0_k_bs_mean = fk_proc.read_bs('E0')
     fpi_bserror = -1.0*F0_pi_bs_mean*np.sqrt(2.0/E0_pi_bs_mean)
     fk_bserror = -1.0*F0_k_bs_mean*np.sqrt(2.0/E0_k_bs_mean)
     if bootstrap_histo_flag == 'on':
         c51.histogram_plot(fpi_bserror, xlabel='fpi')
         c51.histogram_plot(fk_bserror, xlabel='fk')
     # result
-    fpi_boot0_avg = np.average([fpi[i].mean for i in range(len(fpi))])
+    fpi_boot0_avg = np.average(fpi) 
     fpi_error = np.std(fpi_bserror)
-    fk_boot0_avg = np.average([fk[i].mean for i in range(len(fk))])
+    fk_boot0_avg = np.average(fk) 
     fk_error = np.std(fk_bserror)
     print 'fk: ', gv.gvar(fk_boot0_avg, fk_error)
     print 'fpi: ', gv.gvar(fpi_boot0_avg, fpi_error)
-    fkfpi_boot0_avg = np.average(np.array([fk[i].mean for i in range(len(fk))])/np.array([fpi[j].mean for j in range(len(fpi))]))
+    fkfpi_boot0_avg = np.average(fk/fpi) 
     fkfpi_error = np.std(fk_bserror/fpi_bserror)
     print 'fk/fpi: ', gv.gvar(fkfpi_boot0_avg, fkfpi_error)
     plt.show()
