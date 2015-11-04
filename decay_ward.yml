@@ -1,12 +1,34 @@
 #parameter file for decay constant fits
 current_fit:
-    ens: 'l2448f211b580m0064m0640m828'
-    ml: 0.00712
-    ms: 0.0902
+    ens: 'l4864f211b600m00184m0507m628'
+    ml: 0.00220
+    ms: 0.0693
+l4864f211b600m00184m0507m628:
+    0.0022_0.0693:
+        data_loc:
+            file_loc: '/Users/cchang5/Physics/c51/data/l4864f211b600m00184m0507m628a_tune.h5'
+            cfgs_srcs: '/l4864f211b600m00184m0507m628/wf1p0_m51p2_l516_a52p5_smrw7p0_n150/phi_qq/mq0p00220/cfgs_srcs'
+            mres_pion_mp: '/l4864f211b600m00184m0507m628/wf1p0_m51p2_l516_a52p5_smrw7p0_n150/dwf_jmu/mq0p00220/midpoint_pseudo'
+            mres_pion_pp: '/l4864f211b600m00184m0507m628/wf1p0_m51p2_l516_a52p5_smrw7p0_n150/dwf_jmu/mq0p00220/pseudo_pseudo'
+            mres_etas_mp: '/l4864f211b600m00184m0507m628/wf1p0_m51p2_l516_a52p5_smrw7p0_n150/dwf_jmu/mq0p0693/midpoint_pseudo'
+            mres_etas_pp: '/l4864f211b600m00184m0507m628/wf1p0_m51p2_l516_a52p5_smrw7p0_n150/dwf_jmu/mq0p0693/pseudo_pseudo'
+        priors:
+            etas:
+                mres: [0.0, 1.0]
+            pion:
+                mres: [0.0, 1.0]
+                A0: [0.002, 0.001]
+                E0: [0.09, 0.02]
+            kaon:
+                A0: [0.0004, 0.0001]
+                E0: [0.4, 0.05]
+        trange:
+            tmin: [10,13]
+            tmax: [18,20]
 l2448f211b580m0064m0640m828:
     0.00712_0.0902:
         data_loc:
-            file_loc: '/Users/cchang5/c51/data/l2448f211b580m0064m0640m828a_avg.h5'
+            file_loc: '/Users/cchang5/Physics/c51/data/l2448f211b580m0064m0640m828a_avg.h5'
             cfgs_srcs: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00712/cfgs_srcs'
             mres_pion_mp: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00712/midpoint_pseudo'
             mres_pion_pp: 'l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00712/pseudo_pseudo'

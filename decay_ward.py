@@ -10,7 +10,7 @@ from tabulate import tabulate
 import yaml
 import collections
 
-def mres_bs(params, meson, draws):
+def mres_bs(params, meson, draws, mres_data_flag='off'):
     ens = params['current_fit']['ens']
     ml = params['current_fit']['ml']
     ms = params['current_fit']['ms']
@@ -20,6 +20,9 @@ def mres_bs(params, meson, draws):
     pp = c51.fold(c51.open_data(loc['file_loc'], loc['mres_'+meson+'_pp']))
     T = 2*len(pp)
     mres_dat = mp/pp
+    # plot mres
+    if mres_data_flag == 'on':
+        c51.scatter_plot(np.arange(len(mres_dat[0])), c51.make_gvars(mres_dat), meson+' folded mres')
     #Read priors
     prior = params[ens][str(ml)+'_'+str(ms)]['priors'][meson]
     #Read trange
@@ -113,7 +116,9 @@ def decay_constant(params, Z0_p, E0, mres_pion, mres_etas='pion'):
     return constant
 
 if __name__=='__main__':
+    mres_data_flag = 'on'
     mres_tbl_flag = 'on'
+    mres_stability_flag = 'on'
     decay_constant_flag = 'off'
     decay_histogram_flag = 'on'
     # read parameters
@@ -121,14 +126,21 @@ if __name__=='__main__':
     params = yaml.load(f)
     f.close()
     # generate bootstrap list
-    draw_n = 1000
+    draw_n = 0
     draws = c51.bs_draws(params, draw_n)
     # bootstrap mres
-    mres_pion_fit = mres_bs(params, 'pion', draws)
-    mres_etas_fit = mres_bs(params, 'etas', draws)
+    mres_pion_fit = mres_bs(params, 'pion', draws, mres_data_flag)
+    mres_etas_fit = mres_bs(params, 'etas', draws, mres_data_flag)
     # process bootstrap
     mres_pion_proc = c51.process_bootstrap(mres_pion_fit)
     mres_etas_proc = c51.process_bootstrap(mres_etas_fit)
+    # plot mres stability
+    if mres_stability_flag == 'on':
+        mres_pion_0, mres_pion_n = mres_pion_proc()
+        mres_etas_0, mres_etas_n = mres_etas_proc()
+        c51.stability_plot(mres_pion_0, 'mres', 'pion mres')
+        c51.stability_plot(mres_etas_0, 'mres', 'etas mres')
+        plt.show()
     # print results
     if mres_tbl_flag == 'on':
         tbl_print = collections.OrderedDict()
@@ -136,8 +148,10 @@ if __name__=='__main__':
         tbl_print['tmax'] = mres_pion_proc.tmax
         tbl_print['mres_pion_boot0'] = mres_pion_proc.read_boot0('mres')
         tbl_print['mres_pion_sdev'] = mres_pion_proc.read_boot0_sdev('mres')
+        tbl_print['pion_chi2/dof'] = mres_pion_proc.chi2dof
         tbl_print['mres_etas_boot0'] = mres_etas_proc.read_boot0('mres')
         tbl_print['mres_etas_sdev'] = mres_etas_proc.read_boot0_sdev('mres')
+        tbl_print['etas_chi2/dof'] = mres_etas_proc.chi2dof
         print tabulate(tbl_print, headers='keys')
     # bootstrap decay constant
     decay_pion_fit = decay_bs(params, 'pion', draws, decay_constant_flag)
