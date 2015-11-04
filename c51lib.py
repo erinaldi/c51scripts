@@ -247,6 +247,10 @@ class fit_function():
             #fitfcn += -1.0*p['Z'+str(n)+'_p_n']**2*np.exp(En_p*t)
             #fitfcn += p['Z'+str(n)+'_p']*np.exp(-1*En*t)
         return fitfcn
+    def twopt_fitfcn_phiqq(self, t, p):
+        En = p['E0']
+        fitfcn = p['A0'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) + np.exp(-1*En*(self.T+t)))
+        return fitfcn
     # Combined fitters
     # two point ss and ps simultaneous fit 
     def twopt_fitfcn_ss_ps(self, t, p):
