@@ -31,7 +31,7 @@ def read_data(params, meson, plot_flag='off'):
         # scaled correlator
         E0 = dict()
         E0['pion'] = 0.09
-        E0['kaon'] = 0.1
+        E0['kaon'] = 0.41
         scaled = eff.scaled_correlator(c51.make_gvars(twopt_dat), E0[meson], phase=1.0)
         c51.scatter_plot(np.arange(len(scaled)), scaled, meson+' scaled correlator (A0 = Z0_s*Z0_p)')
     return twopt_dat, T
@@ -55,7 +55,8 @@ def fittwo_pt(params, meson, twopt_dat, T):
 if __name__=='__main__':
     # switches
     meson = 'pion'
-    effective_plot_flag = 'on'
+    meson = 'kaon'
+    effective_plot_flag = 'off'
     stability_plot_flag = 'on'
     fit_tbl_flag = 'on'
     # read parameters
@@ -79,5 +80,6 @@ if __name__=='__main__':
         tbl['A0 err'] = fit_proc.read_boot0_sdev('A0')
         tbl['E0'] = fit_proc.read_boot0('E0')
         tbl['E0 err'] = fit_proc.read_boot0_sdev('E0')
+        tbl['chi2/dof'] = fit_proc.chi2dof
         print tabulate(tbl, headers='keys')
     plt.show()
