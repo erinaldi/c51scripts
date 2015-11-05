@@ -29,10 +29,8 @@ def read_data(params, meson, plot_flag='off'):
         ylim = c51.find_yrange(meff, xlim[0], xlim[1])
         c51.scatter_plot(np.arange(len(meff)), meff, meson+' effective mass', xlim = xlim, ylim = ylim)
         # scaled correlator
-        E0 = dict()
-        E0['pion'] = 0.09
-        E0['kaon'] = 0.41
-        scaled = eff.scaled_correlator(c51.make_gvars(twopt_dat), E0[meson], phase=1.0)
+        E0 = params[ens][str(ml)+'_'+str(ms)]['priors'][meson]['E0'][0]
+        scaled = eff.scaled_correlator(c51.make_gvars(twopt_dat), E0, phase=1.0)
         c51.scatter_plot(np.arange(len(scaled)), scaled, meson+' scaled correlator (A0 = Z0_s*Z0_p)')
     return twopt_dat, T
 
@@ -55,8 +53,8 @@ def fittwo_pt(params, meson, twopt_dat, T):
 if __name__=='__main__':
     # switches
     meson = 'pion'
-    meson = 'kaon'
-    effective_plot_flag = 'off'
+    #meson = 'kaon'
+    effective_plot_flag = 'on'
     stability_plot_flag = 'on'
     fit_tbl_flag = 'on'
     # read parameters

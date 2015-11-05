@@ -1,5 +1,5 @@
 import sys
-sys.path.append('$HOME/c51/scripts/')
+sys.path.append('$HOME/Physics/c51/scripts/')
 import c51lib as c51
 import numpy as np
 import h5py as h5
