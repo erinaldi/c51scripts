@@ -53,7 +53,7 @@ l1648f211b580m013m065m838:
             trange:
                 mres:
                     tmin: [1, 15]
-                    tmax: [20, 20]
+                    tmax: [45, 45]
                 twopt:
                     tmin: [1,15]
                     tmax: [47,47]

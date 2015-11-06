@@ -12,9 +12,9 @@ import collections
 
 def mres_bs(params, meson, draws):
     #Read data
-    mp = c51.fold(c51.open_data(params.data_loc['file_loc'], params.data_loc['mres_'+meson+'_mp']))
-    pp = c51.fold(c51.open_data(params.data_loc['file_loc'], params.data_loc['mres_'+meson+'_pp']))
-    T = 2*len(pp)
+    mp = c51.open_data(params.data_loc['file_loc'], params.data_loc['mres_'+meson+'_mp'])
+    pp = c51.open_data(params.data_loc['file_loc'], params.data_loc['mres_'+meson+'_pp'])
+    T = len(pp)
     mres_dat = mp/pp
     # plot mres
     if params.plot_data_flag == 'on':
