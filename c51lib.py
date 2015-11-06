@@ -91,6 +91,7 @@ class process_bootstrap():
         self.fittbl_bs = fittbl[1:, 1]
         self.tmin = self.fittbl_boot0['tmin']
         self.tmax = self.fittbl_boot0['tmax']
+        self.chi2dof = self.fittbl_boot0['chi2dof']
     def __call__(self):
         return self.fittbl_boot0, self.fittbl_bs
     def read_boot0(self, key):
@@ -198,6 +199,7 @@ def fitscript_v2(trange, T, data, priors, fcn, result_flag='off'):
     posterior = []
     tmintbl = []
     tmaxtbl = []
+    chi2tbl = []
     for tmin in range(trange['tmin'][0], trange['tmin'][1]+1):
         for tmax in range(trange['tmax'][0], trange['tmax'][1]+1):
             x = x_indep(tmin, tmax)
@@ -209,10 +211,12 @@ def fitscript_v2(trange, T, data, priors, fcn, result_flag='off'):
             posterior.append(fit.p)
             tmintbl.append(tmin)
             tmaxtbl.append(tmax)
+            chi2tbl.append(fit.chi2/fit.dof)
     fittbl = dict()
     fittbl['tmin'] = tmintbl
     fittbl['tmax'] = tmaxtbl
     fittbl['post'] = posterior
+    fittbl['chi2dof'] = chi2tbl
     return fittbl
 
 #FIT FUNCTIONS
@@ -246,6 +250,10 @@ class fit_function():
             #En_p += np.exp(p['E'+str(n)+'_n'])
             #fitfcn += -1.0*p['Z'+str(n)+'_p_n']**2*np.exp(En_p*t)
             #fitfcn += p['Z'+str(n)+'_p']*np.exp(-1*En*t)
+        return fitfcn
+    def twopt_fitfcn_phiqq(self, t, p):
+        En = p['E0']
+        fitfcn = p['A0'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) + np.exp(-1*En*(self.T+t)))
         return fitfcn
     # Combined fitters
     # two point ss and ps simultaneous fit 
@@ -317,7 +325,7 @@ def stability_plot(fittbl, key, title=''):
                 y_plt = np.array([dat.mean for dat in y])
                 e_plt = np.array([dat.sdev for dat in y])
                 ax1.errorbar(x, y_plt, e_plt, label='tmax: '+str(pltdata[0][1]))
-            plt.title(title+' tmax stability plot')
+            plt.title(title+' tmin stability plot')
             plt.xlabel('tmin')
             plt.ylabel(key)
             plt.xlim(x[0]-0.5, x[-1]+0.5)
@@ -345,7 +353,7 @@ def stability_plot(fittbl, key, title=''):
                 y_plt = np.array([dat.mean for dat in y])
                 e_plt = np.array([dat.sdev for dat in y])
                 ax1.errorbar(x, y_plt, e_plt, label='tmin: '+str(pltdata[0][0]))
-            plt.title(title+' tmin stability plot')
+            plt.title(title+' tmax stability plot')
             plt.xlabel('tmax')
             plt.ylabel(key)
             plt.xlim(x[0]-0.5, x[-1]+0.5)
