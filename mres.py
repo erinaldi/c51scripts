@@ -18,6 +18,7 @@ def mres_bs(params, meson, draws, mres_data_flag='off'):
     #Read data
     mp = c51.fold(c51.open_data(loc['file_loc'], loc['mres_'+meson+'_mp']))
     pp = c51.fold(c51.open_data(loc['file_loc'], loc['mres_'+meson+'_pp']))
+    print np.shape(pp)
     T = 2*len(pp)
     mres_dat = mp/pp
     # plot mres
@@ -27,6 +28,7 @@ def mres_bs(params, meson, draws, mres_data_flag='off'):
     prior = params[ens][str(ml)+'_'+str(ms)]['priors'][meson]
     #Read trange
     trange = params[ens][str(ml)+'_'+str(ms)]['trange']
+    print trange
     #Fit
     args = ((g, trange, T, mres_dat, prior, draws) for g in range(len(draws)))
     pool = multi.Pool()
@@ -39,7 +41,10 @@ def mres_fit(args):
     g, trange, T, mres_dat, prior, draws = args
     #Resample mres data
     mres_dat_bs = mres_dat[draws[g]]
-    mres_dat_bs = c51.make_gvars(mres_dat_bs)
+    #mres_dat_bs = c51.make_gvars(mres_dat_bs)
+    mres_mean = np.average(mres_dat_bs, axis=0)
+    mres_sdev = np.std(mres_dat_bs, axis=0)
+    mres_dat_bs = gv.gvar(mres_mean, mres_sdev)
     #Randomize priors
     bsp = c51.dict_of_tuple_to_gvar(prior) #{'mres': gv.gvar(prior[0]+prior[1]*np.random.randn(), prior[1])}
     #Fit
