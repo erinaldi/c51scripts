@@ -122,6 +122,7 @@ class process_params():
         self.ens = params['current_fit']['ens']
         self.ml = params['current_fit']['ml']
         self.ms = params['current_fit']['ms']
+        self.hadron = params['current_fit']['hadron']
         # data location
         self.data_loc = params[self.ens][self.ms][self.ml]['data_loc']
         # priors
