@@ -7,8 +7,8 @@ current_fit:
     hadron: 'pion'
 plot_flags:
     plot_data_flag: 'off'
-    print_fit_flag: 'on'
-    plot_stab_flag: 'off'
+    print_fit_flag: 'off'
+    plot_stab_flag: 'on'
     print_tbl_flag: 'on'
     plot_hist_flag: 'on'
 l1648f211b580m013m065m838:
@@ -27,6 +27,10 @@ l1648f211b580m013m065m838:
                 spec_kaon: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/kaon/corr'
                 axial_ll: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/axial_ll/corr'
                 axial_ls: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/axial_ls/corr'
+                proton_spin_dn: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton/spin_dn'
+                proton_spin_up: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton/spin_up'
+                proton_np_spin_dn: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton_np/spin_dn'
+                proton_np_spin_up: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton_np/spin_up'
                 # add more as we go
             priors:
                 etas:
@@ -52,6 +56,13 @@ l1648f211b580m013m065m838:
                     Z1_s: [0.0, 1.0]
                     Z1_p: [0.0, 1.0]
                     E1: [0.1, 0.02]
+                proton:
+                    Z0_s: [0.0022, 0.001] # 1.7E-7
+                    Z0_p: [0.00007, 0.00003] # 0.0000048
+                    E0: [0.83, 0.5]
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.0, 1.0]
             trange:
                 mres:
                     tmin: [1, 15]
@@ -62,6 +73,9 @@ l1648f211b580m013m065m838:
                 decay_axial:
                     tmin: [2,3]
                     tmax: [23,23]
+                proton:
+                    tmin: [2,10]
+                    tmax: [15, 23]
 l4896f211b630m00363m0363m430:
     0.0491:
         0.00478:

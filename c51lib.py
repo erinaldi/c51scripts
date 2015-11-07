@@ -57,6 +57,8 @@ def make_gvars(data):
 	return data_gv
 
 def ispin_avg(UU_up, UU_dn, DD_up=0, DD_dn=0, subset='twopt'):
+    # this is for baryons of various current insertions
+    # does isospin and spin averaging with correct phases
     if subset=='twopt':
         avg = 0.5*(UU_up + UU_dn)
     elif subset=='A3':
@@ -75,6 +77,7 @@ def ispin_avg(UU_up, UU_dn, DD_up=0, DD_dn=0, subset='twopt'):
     return avg
 
 def bs_draws(params, nbs):
+    # deprecated to function in process_params class
     ens = params['current_fit']['ens']
     ml = str(params['current_fit']['ml'])
     ms = str(params['current_fit']['ms'])
