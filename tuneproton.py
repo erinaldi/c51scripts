@@ -10,6 +10,65 @@ from tabulate import tabulate
 import yaml
 import collections
 
+<<<<<<< HEAD
+=======
+##Read spin averaged positive parity proton
+#filename = 'l3248f211b580m00235m0647m831a_avg.h5'
+#path = 'l3248f211b580m00235m0647m831/wf1p0_m51p3_l524_a53p5_smrw4p5_n60/spectrum/ml0p00211_ms0p0902/'
+#
+#datapath = path+'proton/spin_up'
+#data_up = c51.read_data(filename, datapath, 0, 0)
+#datapath = path+'proton/spin_dn'
+#data_dn = c51.read_data(filename, datapath, 0, 0)
+#data_pos = c51.ispin_avg(data_up, data_dn)
+##Read spin averaged negative parity proton
+#datapath = path+'proton_np/spin_up'
+#data_up = c51.read_data(filename, datapath, 0, 0)
+#datapath = path+'proton_np/spin_dn'
+#data_dn = c51.read_data(filename, datapath, 0, 0)
+#data_neg = c51.ispin_avg(data_up, data_dn)
+##Parity average
+#data_ss = c51.parity_avg(data_pos, data_neg, -1)
+#datapath = path+'proton/spin_up'
+#data_up = c51.read_data(filename, datapath, 3, 0)
+#datapath = path+'proton/spin_dn'
+#data_dn = c51.read_data(filename, datapath, 3, 0)
+#data_pos = c51.ispin_avg(data_up, data_dn)
+##Read spin averaged negative parity proton
+#datapath = path+'proton_np/spin_up'
+#data_up = c51.read_data(filename, datapath, 3, 0)
+#datapath = path+'proton_np/spin_dn'
+#data_dn = c51.read_data(filename, datapath, 3, 0)
+#data_neg = c51.ispin_avg(data_up, data_dn)
+##Parity average
+#data_ps = c51.parity_avg(data_pos, data_neg, -1)
+#
+#data = np.concatenate((data_ss, data_ps), axis=1)
+#data = c51.make_gvars(data)
+##data = data_ps
+#
+##Plot effective mass
+#T = len(data)*0.5
+#meff = c51.effective_mass(data, 1)
+#x = np.arange(len(meff))
+#ylim = c51.find_yrange(meff, 1, 10)
+##ylim = [0.47, 0.57]
+#xr = [1,15]
+#c51.scatter_plot(x, meff, 'effective mass', xlim=[xr[0],xr[1]], ylim=ylim)
+##ylim = c51.find_yrange(meff, 65, 79)
+#c51.scatter_plot(x, meff, 'effective mass ps', xlim=[T+xr[0],T+xr[1]], ylim=ylim)
+#
+##Fit
+#inputs = c51.read_yaml('temp.yml')
+#prior = c51.dict_of_tuple_to_gvar(inputs['prior'])
+#trange = inputs['trange']
+#fitfcn = c51.fit_function(T, nstates=2)
+#fit = c51.fitscript(trange, data, prior, fitfcn.twopt_fitfcn_ss_ps, sets=2, result_flag='on')
+#c51.stability_plot(fit, 'E0')
+#c51.stability_plot(fit, 'Z0_s')
+#plt.show()
+
+>>>>>>> merge_yaml_edit
 def read_proton(pr):
     # read data
     p_up = c51.open_data(pr.data_loc['file_loc'], pr.data_loc['proton_spin_up'])

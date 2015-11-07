@@ -1,53 +1,134 @@
 #parameter file for decay constant fits
 current_fit:
-    ens: 'l4896f211b630m00363m0363m430'
-    ml: 0.00478
-    ms: 0.0491
+    ens: 'l1648f211b580m013m065m838'
+    ml: 0.0158
+    ms: 0.0902
+    #for tuneqq
+    hadron: 'pion'
+plot_flags:
+    plot_data_flag: 'off'
+    print_fit_flag: 'off'
+    plot_stab_flag: 'on'
+    print_tbl_flag: 'on'
+    plot_hist_flag: 'on'
+l1648f211b580m013m065m838:
+    0.0902:
+        0.0158:
+            data_loc:
+                file_loc: '/Users/cchang5/Physics/c51/data/l1648f211b580m013m065m838a_avg.h5'
+                cfgs_srcs: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0158/cfgs_srcs'
+                mres_pion_mp: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0158/midpoint_pseudo'
+                mres_pion_pp: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0158/pseudo_pseudo'
+                mres_etas_mp: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0902/midpoint_pseudo'
+                mres_etas_pp: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0902/pseudo_pseudo'
+                phiqq_pion: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/phi_qq/mq0p0158/corr'
+                phiqq_kaon: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/phi_qq/mq0p0902/corr'
+                spec_pion: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/pion/corr'
+                spec_kaon: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/kaon/corr'
+                axial_ll: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/axial_ll/corr'
+                axial_ls: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/axial_ls/corr'
+                proton_spin_dn: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton/spin_dn'
+                proton_spin_up: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton/spin_up'
+                proton_np_spin_dn: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton_np/spin_dn'
+                proton_np_spin_up: '/l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton_np/spin_up'
+                # add more as we go
+            priors:
+                etas:
+                    mres: [0.0, 1.0]
+                pion:
+                    mres: [0.0, 1.0]
+                    A0: [0.0066, 0.001] # Z0_p*Z0_s for tuneqq.py
+                    F0: [-0.03, 0.01] # amplitude for axial_ll 
+                    Z0_s: [0.025, 0.01]
+                    Z0_p: [0.0, 1.0]
+                    E0: [0.237, 0.02]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                kaon:
+                    A0: [0.003, 0.001]
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.02, 0.01]
+                    Z0_p: [0.0, 1.0]
+                    E0: [0.4, 0.05]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                proton:
+                    Z0_s: [0.0022, 0.001] # 1.7E-7
+                    Z0_p: [0.00007, 0.00003] # 0.0000048
+                    E0: [0.83, 0.5]
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.0, 1.0]
+            trange:
+                mres:
+                    tmin: [1, 15]
+                    tmax: [45, 45]
+                twopt:
+                    tmin: [2,18]
+                    tmax: [23,23]
+                decay_axial:
+                    tmin: [2,3]
+                    tmax: [23,23]
+                proton:
+                    tmin: [2,10]
+                    tmax: [15, 23]
 l4896f211b630m00363m0363m430:
-    0.00478_0.0491:
-        data_loc:
-            file_loc: '/Users/cchang5/Physics/c51/data/l4896f211b630m00363m0363m430a_tune.h5'
-            cfgs_srcs: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/phi_qq/mq0p00478/cfgs_srcs'
-            mres_pion_mp: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/dwf_jmu/mq0p00478/midpoint_pseudo'
-            mres_pion_pp: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/dwf_jmu/mq0p00478/pseudo_pseudo'
-            mres_etas_mp: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/dwf_jmu/mq0p0491/midpoint_pseudo'
-            mres_etas_pp: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/dwf_jmu/mq0p0491/pseudo_pseudo'
-            phiqq_pion: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/phi_qq/mq0p00478/corr'
-            phiqq_kaon: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/phi_qq/mq0p0491/corr'
-            spec_pion: ' '
-            spec_kaon: ' '
-        priors:
-            etas:
-                mres: [0.0, 1.0]
-            pion:
-                mres: [0.0, 1.0]
-                A0: [0.0072, 0.001] # Z0_p*Z0_s for tuneqq.py
-                F0: [0.0, 1.0] # amplitude for axial_ll
-                Z0_s: [0.0, 1.0]
-                Z0_p: [0.0, 1.0]
-                E0: [0.1, 0.02]
-                F1: [0.0, 1.0] # amplitude for axial_ll
-                Z1_s: [0.0, 1.0]
-                Z1_p: [0.0, 1.0]
-                E1: [0.1, 0.02]
-            kaon:
-                A0: [0.003, 0.001]
-                E0: [0.3, 0.05]
-        mres:
-            fitparams: ['mres']
-            trange:
-                tmin: [1,15]
-                tmax: [47,47]
-        twopt:
-            fitparams: ['Z0_s', 'Z0_p', 'E0', 'Z1_s', 'Z1_p', 'E1']
-            trange:
-                tmin: [1,15]
-                tmax: [47,47]
-        decay_axial:
-            fitparams: ['Z0_s', 'F0', 'E0', 'Z1_s', 'F1', 'E1']
-            trange:
-                tmin: [1,15]
-                tmax: [47,47]
+    0.0491:
+        0.00478:
+            data_loc:
+                file_loc: '/Users/cchang5/Physics/c51/data/l4896f211b630m00363m0363m430a_tune.h5'
+                cfgs_srcs: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/phi_qq/mq0p00478/cfgs_srcs'
+                mres_pion_mp: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/dwf_jmu/mq0p00478/midpoint_pseudo'
+                mres_pion_pp: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/dwf_jmu/mq0p00478/pseudo_pseudo'
+                mres_etas_mp: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/dwf_jmu/mq0p0491/midpoint_pseudo'
+                mres_etas_pp: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/dwf_jmu/mq0p0491/pseudo_pseudo'
+                phiqq_pion: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/phi_qq/mq0p00478/corr'
+                phiqq_kaon: '/l4896f211b630m00363m0363m430/wf1p0_m51p1_l58_a51p5_smrw7p5_n167/phi_qq/mq0p0491/corr'
+                spec_pion: ' '
+                spec_kaon: ' '
+            priors:
+                etas:
+                    mres: [0.0, 1.0]
+                pion:
+                    mres: [0.0, 1.0]
+                    A0: [0.0072, 0.001] # Z0_p*Z0_s for tuneqq.py
+                    F0: [0.0, 1.0] # amplitude for axial_ll
+                    Z0_s: [0.0, 1.0]
+                    Z0_p: [0.0, 1.0]
+                    E0: [0.1, 0.02]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                kaon:
+                    A0: [0.003, 0.001]
+                    F0: [0.0, 1.0] # amplitude for axial_ll
+                    Z0_s: [0.0, 1.0]
+                    Z0_p: [0.0, 1.0]
+                    E0: [0.3, 0.05]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+            mres:
+                fitparams: ['mres']
+                trange:
+                    tmin: [1,15]
+                    tmax: [47,47]
+            twopt:
+                fitparams: ['Z0_s', 'Z0_p', 'E0', 'Z1_s', 'Z1_p', 'E1']
+                trange:
+                    tmin: [1,15]
+                    tmax: [47,47]
+            decay_axial:
+                fitparams: ['Z0_s', 'F0', 'E0', 'Z1_s', 'F1', 'E1']
+                trange:
+                    tmin: [1,15]
+                    tmax: [47,47]
 l4864f211b600m00184m0507m628:
     0.0022_0.0693:
         data_loc:
@@ -108,40 +189,6 @@ l2448f211b580m0064m0640m828:
         trange:
             tmin: [6, 7]
             tmax: [20, 21]
-l1648f211b580m013m065m838:
-    data_loc:
-        file_loc: '/Users/cchang5/c51/data/l1648f211b580m013m065m838a_avg.h5'
-        cfgs_srcs: 'l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0158/cfgs_srcs'
-        mres_pion_mp: 'l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0158/midpoint_pseudo'
-        mres_pion_pp: 'l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0158/pseudo_pseudo'
-        mres_etas_mp: 'l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0902/midpoint_pseudo'
-        mres_etas_pp: 'l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/dwf_jmu/mq0p0902/pseudo_pseudo'
-        decay_pion: 'l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spec_ml0p0158_ms0p0902/pion/corr'
-        decay_kaon: 'l1648f211b580m013m065m838a/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spec_ml0p0158_ms0p0902/kaon/corr'
-    0.0158_0.0902:
-        mres_pion: [0.001, 0.0005]
-        mres_etas: [0.007, 0.004]
-        Z0s_pion: [0.025, 0.005]
-        Z1s_pion: [0.025, 0.015]
-        Z2s_pion: [0.025, 0.025]
-        Z0p_pion: [0.27, 0.07]
-        Z1p_pion: [0.27, 0.17]
-        Z2p_pion: [0.27, 0.27]
-        E0_pion: [0.23, 0.02]
-        E1_pion: [0.0, 1.0]
-        E2_pion: [0.0, 1.0]
-        Z0s_kaon: [0.02, 0.004]
-        Z1s_kaon: [0.02, 0.01]
-        Z2s_kaon: [0.02, 0.02]
-        Z0p_kaon: [0.2, 0.05]
-        Z1p_kaon: [0.2, 0.1]
-        Z2p_kaon: [0.2, 0.2]
-        E0_kaon: [0.4, 0.05]
-        E1_kaon: [0.0, 1.0]
-        E2_kaon: [0.0, 1.0]
-    trange:
-        tmin: [6, 7]
-        tmax: [20, 21]
 l2464f211b600m0102m0509m635:
     0.0126_0.0693:
         data_loc:

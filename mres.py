@@ -10,24 +10,20 @@ from tabulate import tabulate
 import yaml
 import collections
 
-def mres_bs(params, meson, draws, mres_data_flag='off'):
-    ens = params['current_fit']['ens']
-    ml = params['current_fit']['ml']
-    ms = params['current_fit']['ms']
-    loc = params[ens][str(ml)+'_'+str(ms)]['data_loc']
+def mres_bs(params, meson, draws):
     #Read data
-    mp = c51.fold(c51.open_data(loc['file_loc'], loc['mres_'+meson+'_mp']))
-    pp = c51.fold(c51.open_data(loc['file_loc'], loc['mres_'+meson+'_pp']))
-    print np.shape(pp)
-    T = 2*len(pp)
+    mp = c51.open_data(params.data_loc['file_loc'], params.data_loc['mres_'+meson+'_mp'])
+    pp = c51.open_data(params.data_loc['file_loc'], params.data_loc['mres_'+meson+'_pp'])
+    T = len(pp)
     mres_dat = mp/pp
     # plot mres
-    if mres_data_flag == 'on':
+    if params.plot_data_flag == 'on':
         c51.scatter_plot(np.arange(len(mres_dat[0])), c51.make_gvars(mres_dat), meson+' folded mres')
     #Read priors
-    prior = params[ens][str(ml)+'_'+str(ms)]['priors'][meson]
+    prior = params.priors[meson]
     #Read trange
-    trange = params[ens][str(ml)+'_'+str(ms)]['trange']
+    print params.priors
+    trange = params.trange['mres']
     print trange
     #Fit
     args = ((g, trange, T, mres_dat, prior, draws) for g in range(len(draws)))
@@ -54,31 +50,26 @@ def mres_fit(args):
     return result
 
 if __name__=='__main__':
-    mres_data_flag = 'on'
-    mres_tbl_flag = 'on'
-    mres_stability_flag = 'on'
     # read parameters
-    f = open('./decay_ward.yml','r')
-    params = yaml.load(f)
-    f.close()
+    params = c51.process_params()
     # generate bootstrap list
     draw_n = 0
-    draws = c51.bs_draws(params, draw_n)
+    draws = params.bs_draws(draw_n)
     # bootstrap mres
-    mres_pion_fit = mres_bs(params, 'pion', draws, mres_data_flag)
+    mres_pion_fit = mres_bs(params, 'pion', draws)
     #mres_etas_fit = mres_bs(params, 'etas', draws, mres_data_flag)
     # process bootstrap
     mres_pion_proc = c51.process_bootstrap(mres_pion_fit)
     #mres_etas_proc = c51.process_bootstrap(mres_etas_fit)
     # plot mres stability
-    if mres_stability_flag == 'on':
+    if params.plot_stab_flag == 'on':
         mres_pion_0, mres_pion_n = mres_pion_proc()
         #mres_etas_0, mres_etas_n = mres_etas_proc()
         c51.stability_plot(mres_pion_0, 'mres', 'pion mres')
         #c51.stability_plot(mres_etas_0, 'mres', 'etas mres')
         plt.show()
     # print results
-    if mres_tbl_flag == 'on':
+    if params.print_tbl_flag == 'on':
         tbl_print = collections.OrderedDict()
         tbl_print['tmin'] = mres_pion_proc.tmin
         tbl_print['tmax'] = mres_pion_proc.tmax

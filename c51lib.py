@@ -57,6 +57,8 @@ def make_gvars(data):
 	return data_gv
 
 def ispin_avg(UU_up, UU_dn, DD_up=0, DD_dn=0, subset='twopt'):
+    # this is for baryons of various current insertions
+    # does isospin and spin averaging with correct phases
     if subset=='twopt':
         avg = 0.5*(UU_up + UU_dn)
     elif subset=='A3':
@@ -75,6 +77,7 @@ def ispin_avg(UU_up, UU_dn, DD_up=0, DD_dn=0, subset='twopt'):
     return avg
 
 def bs_draws(params, nbs):
+    # deprecated to function in process_params class
     ens = params['current_fit']['ens']
     ml = str(params['current_fit']['ml'])
     ms = str(params['current_fit']['ms'])
@@ -105,6 +108,40 @@ class process_bootstrap():
         if reshape_flag == 'on':
             bs = bs.reshape((len(bs)/len(self.tmin),len(self.tmin)))
         return bs
+
+# reads master.yml and formats it
+class process_params():
+    def __init__(self):
+        f = open('./master.yml','r')
+        params = yaml.load(f)
+        f.close()
+        # plotting flags
+        self.plot_data_flag = params['plot_flags']['plot_data_flag']
+        self.print_fit_flag = params['plot_flags']['print_fit_flag']
+        self.plot_stab_flag = params['plot_flags']['plot_stab_flag']
+        self.print_tbl_flag = params['plot_flags']['print_tbl_flag']
+        self.plot_hist_flag = params['plot_flags']['plot_hist_flag']
+        # current fit
+        self.ens = params['current_fit']['ens']
+        self.ml = params['current_fit']['ml']
+        self.ms = params['current_fit']['ms']
+        self.hadron = params['current_fit']['hadron']
+        # data location
+        self.data_loc = params[self.ens][self.ms][self.ml]['data_loc']
+        # priors
+        self.priors = params[self.ens][self.ms][self.ml]['priors']
+        # trange
+        self.trange = params[self.ens][self.ms][self.ml]['trange']
+        # analysis
+        #self.analysis = params[self.ens][self.ms][self.ml]['analysis']
+    def __call__(self):
+        pass
+    def bs_draws(self, nbs):
+        cfgs = len(open_data(self.data_loc['file_loc'], self.data_loc['cfgs_srcs']))
+        boot0 = np.array([np.arange(cfgs)])
+        draws = np.random.randint(cfgs, size=(nbs, cfgs))
+        draws = np.concatenate((boot0, draws), axis=0)
+        return draws
 
 ###    `. ---)..(
 ###      ||||(,o)
@@ -139,12 +176,6 @@ class effective_plots:
             scaled2pt.append(twopt[t]/(np.exp(-E0*t)+phase*np.exp(-E0*(self.T-t))))
         scaled2pt = np.array(scaled2pt)
         return scaled2pt
-
-def read_yaml(ymlname):
-    f = open('/Users/cchang5/c51/scripts/'+ymlname,'r')
-    dictionary = yaml.load(f)
-    f.close()
-    return dictionary
 
 def dict_of_tuple_to_gvar(dictionary):
     prior = dict()
