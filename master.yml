@@ -1,16 +1,84 @@
 #parameter file for decay constant fits
 current_fit:
+    #ens: 'l3248f211b580m00235m0647m831'
+    #ml: 0.00216
+    #ms: 0.0902
     ens: 'l1648f211b580m013m065m838'
-    ml: 0.0158
     ms: 0.0902
+    ml: 0.0158
     #for tuneqq
     hadron: 'pion'
 plot_flags:
-    plot_data_flag: 'off'
-    print_fit_flag: 'off'
+    plot_data_flag: 'on'
+    print_fit_flag: 'on'
     plot_stab_flag: 'on'
     print_tbl_flag: 'on'
     plot_hist_flag: 'on'
+l3248f211b580m00235m0647m831:
+    0.0902:
+        0.00216:
+            data_loc:
+                file_loc: '/Users/cchang5/Physics/c51/data/l3248f211b580m00235m0647m831a_tuning.h5'
+                cfgs_srcs: '/l3248f211b580m00235m0647m831/wf1p0_m51p3_l524_a53p5_smrw5p0_n75/dwf_jmu/mq0p00216/cfgs_srcs'
+                mres_pion_mp: ''
+                mres_pion_pp: ''
+                mres_etas_mp: ''
+                mres_etas_pp: ''
+                phiqq_pion: ''
+                phiqq_kaon: ''
+                spec_pion: ''
+                spec_kaon: ''
+                axial_ll: ''
+                axial_ls: ''
+                proton_spin_dn: '/l3248f211b580m00235m0647m831/wf1p0_m51p3_l524_a53p5_smrw5p0_n75/spectrum/ml0p00216_ms0p0902/proton/spin_dn'
+                proton_spin_up: '/l3248f211b580m00235m0647m831/wf1p0_m51p3_l524_a53p5_smrw5p0_n75/spectrum/ml0p00216_ms0p0902/proton/spin_up'
+                proton_np_spin_dn: '/l3248f211b580m00235m0647m831/wf1p0_m51p3_l524_a53p5_smrw5p0_n75/spectrum/ml0p00216_ms0p0902/proton_np/spin_dn'
+                proton_np_spin_up: '/l3248f211b580m00235m0647m831/wf1p0_m51p3_l524_a53p5_smrw5p0_n75/spectrum/ml0p00216_ms0p0902/proton_np/spin_up'
+                # add more as we go
+            priors:
+                etas:
+                    mres: [0.0, 1.0]
+                pion:
+                    mres: [0.0, 1.0]
+                    A0: [0.0066, 0.001] # Z0_p*Z0_s for tuneqq.py
+                    F0: [-0.03, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.025, 0.01]
+                    Z0_p: [0.0, 1.0]
+                    E0: [0.237, 0.02]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                kaon:
+                    A0: [0.003, 0.001]
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.02, 0.01]
+                    Z0_p: [0.0, 1.0]
+                    E0: [0.4, 0.05]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                proton:
+                    Z0_p: [0.0022, 0.001] # 0.000005
+                    Z0_s: [0.00004, 0.00002] # 0.9E-7
+                    E0: [0.8, 0.5]
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.0, 1.0]
+            trange:
+                mres:
+                    tmin: [1, 15]
+                    tmax: [45, 45]
+                twopt:
+                    tmin: [2,18]
+                    tmax: [23,23]
+                decay_axial:
+                    tmin: [2,3]
+                    tmax: [23,23]
+                proton:
+                    tmin: [2,2]
+                    tmax: [14, 14]
 l1648f211b580m013m065m838:
     0.0902:
         0.0158:
@@ -57,11 +125,11 @@ l1648f211b580m013m065m838:
                     Z1_p: [0.0, 1.0]
                     E1: [0.1, 0.02]
                 proton:
-                    Z0_s: [0.0022, 0.001] # 1.7E-7
-                    Z0_p: [0.00007, 0.00003] # 0.0000048
+                    Z0_s: [0.0004, 0.0002] 
+                    Z0_p: [0.012, 0.006] 
                     E0: [0.83, 0.5]
-                    Z1_s: [0.0, 1.0]
-                    Z1_p: [0.0, 1.0]
+                    Z1_s: [0.0004, 0.0002]
+                    Z1_p: [0.012, 0.012]
                     E1: [0.0, 1.0]
             trange:
                 mres:
@@ -74,8 +142,8 @@ l1648f211b580m013m065m838:
                     tmin: [2,3]
                     tmax: [23,23]
                 proton:
-                    tmin: [2,10]
-                    tmax: [15, 23]
+                    tmin: [3,7]
+                    tmax: [10, 12]
 l4896f211b630m00363m0363m430:
     0.0491:
         0.00478:
