@@ -70,14 +70,8 @@ if __name__=='__main__':
         plt.show()
     # print results
     if params.print_tbl_flag == 'on':
-        tbl_print = collections.OrderedDict()
-        tbl_print['tmin'] = mres_pion_proc.tmin
-        tbl_print['tmax'] = mres_pion_proc.tmax
-        tbl_print['mres_pion_boot0'] = mres_pion_proc.read_boot0('mres')
-        tbl_print['mres_pion_sdev'] = mres_pion_proc.read_boot0_sdev('mres')
-        tbl_print['pion_chi2/dof'] = mres_pion_proc.chi2dof
-        #tbl_print['mres_etas_boot0'] = mres_etas_proc.read_boot0('mres')
-        #tbl_print['mres_etas_sdev'] = mres_etas_proc.read_boot0_sdev('mres')
-        #tbl_print['etas_chi2/dof'] = mres_etas_proc.chi2dof
-        print params['current_fit']['ens']
-        print tabulate(tbl_print, headers='keys')
+        tblp = c51.tabulate_result(mres_pion_proc, ['mres'])
+        #tble = c51.tabulate_result(mres_etas_proc, ['mres'])
+        print params.ens
+        print tblp
+        #print tble

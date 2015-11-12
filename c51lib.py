@@ -8,6 +8,7 @@ import h5py
 import yaml
 import lsqfit
 import collections
+from tabulate import tabulate
 
 ### READ DATASET ###
 def parameters():
@@ -95,6 +96,7 @@ class process_bootstrap():
         self.tmin = self.fittbl_boot0['tmin']
         self.tmax = self.fittbl_boot0['tmax']
         self.chi2dof = self.fittbl_boot0['chi2dof']
+        self.logGBF = self.fittbl_boot0['logGBF']
     def __call__(self):
         return self.fittbl_boot0, self.fittbl_bs
     def read_boot0(self, key):
@@ -231,6 +233,7 @@ def fitscript_v2(trange, T, data, priors, fcn, result_flag='off'):
     tmintbl = []
     tmaxtbl = []
     chi2tbl = []
+    lgbftbl = []
     for tmin in range(trange['tmin'][0], trange['tmin'][1]+1):
         for tmax in range(trange['tmax'][0], trange['tmax'][1]+1):
             x = x_indep(tmin, tmax)
@@ -243,12 +246,25 @@ def fitscript_v2(trange, T, data, priors, fcn, result_flag='off'):
             tmintbl.append(tmin)
             tmaxtbl.append(tmax)
             chi2tbl.append(fit.chi2/fit.dof)
+            lgbftbl.append(fit.logGBF)
     fittbl = dict()
     fittbl['tmin'] = tmintbl
     fittbl['tmax'] = tmaxtbl
     fittbl['post'] = posterior
     fittbl['chi2dof'] = chi2tbl
+    fittbl['logGBF'] = lgbftbl
     return fittbl
+
+def tabulate_result(fit_proc, parameters):
+    tbl = collections.OrderedDict()
+    tbl['tmin'] = fit_proc.tmin
+    tbl['tmax'] = fit_proc.tmax
+    for p in parameters:
+        tbl[p] = fit_proc.read_boot0(p)
+        tbl[p+' err'] = fit_proc.read_boot0_sdev(p)
+    tbl['chi2/dof'] = fit_proc.chi2dof
+    tbl['logGBF'] = fit_proc.logGBF
+    return tabulate(tbl, headers='keys')
 
 #FIT FUNCTIONS
 class fit_function():

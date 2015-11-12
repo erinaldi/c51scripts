@@ -75,15 +75,6 @@ if __name__=='__main__':
         c51.stability_plot(fit_boot0, 'Z0_p', 'proton Z0_p ')
         c51.stability_plot(fit_boot0, 'Z0_s', 'proton Z0_s ')
     if pr.print_tbl_flag == 'on':
-        tbl = collections.OrderedDict()
-        tbl['tmin'] = fit_proc.tmin
-        tbl['tmax'] = fit_proc.tmax
-        tbl['Z0_s'] = fit_proc.read_boot0('Z0_s')
-        tbl['Z0_s err'] = fit_proc.read_boot0_sdev('Z0_s')
-        tbl['Z0_p'] = fit_proc.read_boot0('Z0_p')
-        tbl['Z0_p err'] = fit_proc.read_boot0_sdev('Z0_p')
-        tbl['E0'] = fit_proc.read_boot0('E0')
-        tbl['E0 err'] = fit_proc.read_boot0_sdev('E0')
-        tbl['chi2/dof'] = fit_proc.chi2dof
-        print tabulate(tbl, headers='keys')
+        tbl = c51.tabulate_result(fit_proc, ['Z0_s', 'Z0_p', 'E0'])
+        print tbl
     plt.show()

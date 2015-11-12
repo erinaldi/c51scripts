@@ -56,13 +56,6 @@ if __name__=='__main__':
     if params.plot_stab_flag == 'on':
         c51.stability_plot(fit_boot0, 'E0', params.hadron+' E0 ')
     if params.print_tbl_flag == 'on':
-        tbl = collections.OrderedDict()
-        tbl['tmin'] = fit_proc.tmin
-        tbl['tmax'] = fit_proc.tmax
-        tbl['A0'] = fit_proc.read_boot0('A0')
-        tbl['A0 err'] = fit_proc.read_boot0_sdev('A0')
-        tbl['E0'] = fit_proc.read_boot0('E0')
-        tbl['E0 err'] = fit_proc.read_boot0_sdev('E0')
-        tbl['chi2/dof'] = fit_proc.chi2dof
-        print tabulate(tbl, headers='keys')
+        tbl = c51.tabulate_result(fit_proc, ['A0', 'E0'])
+        print tbl
     plt.show()
