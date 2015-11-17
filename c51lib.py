@@ -97,6 +97,7 @@ class process_bootstrap():
         self.tmax = self.fittbl_boot0['tmax']
         self.chi2dof = self.fittbl_boot0['chi2dof']
         self.logGBF = self.fittbl_boot0['logGBF']
+        self.normbayesfactor = np.exp(self.logGBF - self.logGBF[0])/sum(np.exp(self.logGBF - self.logGBF[0]))
     def __call__(self):
         return self.fittbl_boot0, self.fittbl_bs
     def read_boot0(self, key):
@@ -260,10 +261,11 @@ def tabulate_result(fit_proc, parameters):
     tbl['tmin'] = fit_proc.tmin
     tbl['tmax'] = fit_proc.tmax
     for p in parameters:
-        tbl[p] = fit_proc.read_boot0(p)
-        tbl[p+' err'] = fit_proc.read_boot0_sdev(p)
+        tbl[p] = gv.gvar(fit_proc.read_boot0(p), fit_proc.read_boot0_sdev(p))
+        #tbl[p+' err'] = fit_proc.read_boot0_sdev(p)
     tbl['chi2/dof'] = fit_proc.chi2dof
     tbl['logGBF'] = fit_proc.logGBF
+    tbl['normBF'] = fit_proc.normbayesfactor
     return tabulate(tbl, headers='keys')
 
 #FIT FUNCTIONS
@@ -438,6 +440,17 @@ def find_yrange(data, pltxmin, pltxmax):
 ###      ()()       ^ ^ 
 ###      (_ _)    =(o o)=
 ###      (u u)o    (m m)~~
+
+# bayesian model averaging
+def bayes_model_avg(fit_proc, arg_array):
+    #bayesfactor = np.exp(fit_proc.logGBF - fit_proc.logGBF[0])/sum(np.exp(fit_proc.logGBF - fit_proc.logGBF[0]))
+    #bayesfactor = fit_proc.logGBF - fit_proc.logGBF[0]
+    #norm = sum(bayesfactor)
+    normalized_bayesfactor = fit_proc.normbayesfactor #bayesfactor/norm
+    model_avg_fit = dict()
+    for key in arg_array:
+        model_avg_fit[key] = sum(gv.gvar(fit_proc.read_boot0(key),fit_proc.read_boot0_sdev(key))*normalized_bayesfactor)
+    return model_avg_fit
 
 ### BEGIN MAIN ###
 if __name__=='__main__':

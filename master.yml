@@ -9,8 +9,8 @@ current_fit:
     #for tuneqq
     hadron: 'pion'
 plot_flags:
-    plot_data_flag: 'on'
-    print_fit_flag: 'on'
+    plot_data_flag: 'off'
+    print_fit_flag: 'off'
     plot_stab_flag: 'on'
     print_tbl_flag: 'on'
     plot_hist_flag: 'on'
@@ -131,6 +131,21 @@ l1648f211b580m013m065m838:
                     Z1_s: [0.0004, 0.0002]
                     Z1_p: [0.012, 0.012]
                     E1: [0.0, 1.0]
+                    Z2_s: [0.0004, 0.0002]
+                    Z2_p: [0.012, 0.012]
+                    E2: [0.0, 1.0]
+                    Z3_s: [0.0004, 0.0002]
+                    Z3_p: [0.012, 0.012]
+                    E3: [0.0, 1.0]
+                    Z4_s: [0.0004, 0.0002]
+                    Z4_p: [0.012, 0.012]
+                    E4: [0.0, 1.0]
+                    Z5_s: [0.0004, 0.0002]
+                    Z5_p: [0.012, 0.012]
+                    E5: [0.0, 1.0]
+                    Z6_s: [0.0004, 0.0002]
+                    Z6_p: [0.012, 0.012]
+                    E6: [0.0, 1.0]
             trange:
                 mres:
                     tmin: [1, 15]
@@ -142,8 +157,8 @@ l1648f211b580m013m065m838:
                     tmin: [2,3]
                     tmax: [23,23]
                 proton:
-                    tmin: [3,7]
-                    tmax: [10, 12]
+                    tmin: [2,7]
+                    tmax: [13, 22]
 l4896f211b630m00363m0363m430:
     0.0491:
         0.00478:
