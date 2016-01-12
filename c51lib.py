@@ -9,6 +9,7 @@ import yaml
 import lsqfit
 import collections
 from tabulate import tabulate
+from pandas import DataFrame
 
 ### READ DATASET ###
 def parameters():
@@ -93,11 +94,17 @@ class process_bootstrap():
     def __init__(self, fittbl):
         self.fittbl_boot0 = fittbl[0, 1]
         self.fittbl_bs = fittbl[1:, 1]
-        self.tmin = self.fittbl_boot0['tmin']
-        self.tmax = self.fittbl_boot0['tmax']
+        self.tmin = np.array(self.fittbl_boot0['tmin'])
+        self.tmax = np.array(self.fittbl_boot0['tmax'])
         self.chi2dof = self.fittbl_boot0['chi2dof']
         self.logGBF = self.fittbl_boot0['logGBF']
-        self.normbayesfactor = np.exp(self.logGBF - self.logGBF[0])/sum(np.exp(self.logGBF - self.logGBF[0]))
+        self.normbayesfactor = np.exp(self.logGBF - max(self.logGBF))
+        self.logposterior = self.fittbl_boot0['logposterior']
+        self.normposterior = np.exp(self.logposterior - max(self.logposterior))
+        try:
+            self.nstates = self.fittbl_boot0['nstates']
+        except:
+            pass
     def __call__(self):
         return self.fittbl_boot0, self.fittbl_bs
     def read_boot0(self, key):
@@ -106,6 +113,9 @@ class process_bootstrap():
     def read_boot0_sdev(self, key):
         boot0_sdev = np.array([self.fittbl_boot0['post'][i][key].sdev for i in range(len(self.fittbl_boot0['post']))])
         return boot0_sdev
+    def read_corrboot0(self, key):
+        boot0 = np.array([self.fittbl_boot0['post'][i][key] for i in range(len(self.fittbl_boot0['post']))])
+        return boot0
     def read_bs(self, key, reshape_flag='off'):
         bs = np.array([self.fittbl_bs[i]['post'][j][key].mean for i in range(len(self.fittbl_bs)) for j in range(len(self.fittbl_bs[i]['post']))])
         if reshape_flag == 'on':
@@ -164,11 +174,11 @@ class effective_plots:
     # effective mass
     def effective_mass(self, twopt, tau=2, style='log'):
         meff = []
-        for t in range(len(twopt)-tau):
+        for t in range(len(twopt)):
             if style=='cosh':
-        	    meff.append(np.arccosh((twopt[(t+tau)%self.T]+twopt[t-tau])/(2*twopt[t])))
+        	    meff.append(np.arccosh((twopt[(t+tau)%len(twopt)]+twopt[t-tau])/(2*twopt[t])))
             elif style=='log':
-                meff.append(np.log(twopt[t]/twopt[(t+tau)%self.T])/tau)
+                meff.append(np.log(twopt[t]/twopt[(t+tau)%len(twopt)])/tau)
             else: pass
         meff = np.array(meff)
         return meff
@@ -194,7 +204,7 @@ def x_indep(tmin, tmax):
     x = np.arange(tmin, tmax+1)
     return x
 
-def y_dep(x, y, sets):
+def y_dep(x, y, sets=1):
     for s in range(1, sets): x = np.concatenate((x, x+len(y)/sets))
     #print x
     y = y[x]
@@ -235,6 +245,7 @@ def fitscript_v2(trange, T, data, priors, fcn, result_flag='off'):
     tmaxtbl = []
     chi2tbl = []
     lgbftbl = []
+    lgpostd = []
     for tmin in range(trange['tmin'][0], trange['tmin'][1]+1):
         for tmax in range(trange['tmax'][0], trange['tmax'][1]+1):
             x = x_indep(tmin, tmax)
@@ -248,16 +259,31 @@ def fitscript_v2(trange, T, data, priors, fcn, result_flag='off'):
             tmaxtbl.append(tmax)
             chi2tbl.append(fit.chi2/fit.dof)
             lgbftbl.append(fit.logGBF)
+            # log posterior probability
+            # factor of log 2pi**k/2
+            pifactor = ((tmax-tmin+1)/2.0) * np.log(2*np.pi)
+            # log det data covariance
+            datacov = gv.evalcov(y) # data covariance
+            L = np.linalg.cholesky(datacov) # cholesky decomposition
+            #logdetA = 2.*np.trace(np.log(L))
+            logsqrtdetA = np.trace(np.log(L))
+            chi2factor = -0.5*fit.chi2
+            lgpostd.append(-pifactor-0.5*fit.chi2)
     fittbl = dict()
     fittbl['tmin'] = tmintbl
     fittbl['tmax'] = tmaxtbl
     fittbl['post'] = posterior
     fittbl['chi2dof'] = chi2tbl
     fittbl['logGBF'] = lgbftbl
+    fittbl['logposterior'] = lgpostd
+    fittbl['rawoutput'] = fit
     return fittbl
 
 def tabulate_result(fit_proc, parameters):
     tbl = collections.OrderedDict()
+    try:
+        tbl['nstates'] = fit_proc.nstates
+    except: pass
     tbl['tmin'] = fit_proc.tmin
     tbl['tmax'] = fit_proc.tmax
     for p in parameters:
@@ -266,6 +292,8 @@ def tabulate_result(fit_proc, parameters):
     tbl['chi2/dof'] = fit_proc.chi2dof
     tbl['logGBF'] = fit_proc.logGBF
     tbl['normBF'] = fit_proc.normbayesfactor
+    tbl['logpost'] = fit_proc.logposterior
+    tbl['normpost'] = fit_proc.normposterior 
     return tabulate(tbl, headers='keys')
 
 #FIT FUNCTIONS
@@ -286,6 +314,8 @@ class fit_function():
             En += np.exp(p['E'+str(n)])
             fitfcn += p['Z'+str(n)+'_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) + np.exp(-1*En*(self.T+t)))
             #fitfcn += p['Z'+str(n)+'_s']*np.exp(-1*En*t)
+        # random variable fit
+        #fitfcn += p['RA_s']*np.exp(-p['RE_s']*t)
         return fitfcn
     # two point point smear source sink
     def twopt_fitfcn_ps(self, t, p):
@@ -299,6 +329,8 @@ class fit_function():
             #En_p += np.exp(p['E'+str(n)+'_n'])
             #fitfcn += -1.0*p['Z'+str(n)+'_p_n']**2*np.exp(En_p*t)
             #fitfcn += p['Z'+str(n)+'_p']*np.exp(-1*En*t)
+        # random variable fit
+        #fitfcn += p['RA_p']*np.exp(-p['RE_p']*t)
         return fitfcn
     def twopt_fitfcn_phiqq(self, t, p):
         En = p['E0']
@@ -341,18 +373,18 @@ class fit_function():
 
 ### PLOT FUNCTIONS ###
 def scatter_plot(x, data_gv, title='default title', xlabel='x', ylabel='y', xlim=[None,None], ylim=[None,None], grid_flg=True):
-	y = np.array([dat.mean for dat in data_gv])
-	e = np.array([dat.sdev for dat in data_gv])
-	plt.figure()
-	plt.errorbar(x, y, yerr=e)
-	plt.title(title)
-	plt.xlabel(xlabel)
-	plt.ylabel(ylabel)
-	plt.xlim(xlim[0], xlim[1])
-	plt.ylim(ylim[0], ylim[1])
-	plt.grid(grid_flg)
-	plt.draw()
-	return 0
+    y = np.array([dat.mean for dat in data_gv])
+    e = np.array([dat.sdev for dat in data_gv])
+    plt.figure()
+    plt.errorbar(x, y, yerr=e)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.xlim(xlim[0], xlim[1])
+    plt.ylim(ylim[0], ylim[1])
+    plt.grid(grid_flg)
+    plt.draw()
+    return 0
 
 def stability_plot(fittbl, key, title=''):
     # tmin stability plot
@@ -414,6 +446,12 @@ def stability_plot(fittbl, key, title=''):
     else: print key,':',fittbl['post'][0][key]
     return 0
 
+def nstate_stability_plot(fittbl, key, title=''):
+    x = fittbl['nstates']
+    y = np.array([data[key] for data in fittbl['post']])
+    scatter_plot(x, y, title+' nstate stability plot', 'nstates ([tmin, tmax]=['+str(fittbl['tmin'][0])+', '+str(fittbl['tmax'][0])+'])', key, xlim=[x[0]-0.5,x[-1]+0.5])
+    return 0
+
 def histogram_plot(fittbl, key=None, xlabel=''):
     plt.figure()
     if key == None:
@@ -425,6 +463,26 @@ def histogram_plot(fittbl, key=None, xlabel=''):
     plt.plot(x, n)
     plt.xlabel(xlabel)
     plt.ylabel('counts')
+    plt.draw()
+    return 0
+
+def heatmap(x, y, z, colorlimit, title='', xlabel='', ylabel=''):
+    plt.figure()
+    x = np.unique(x)
+    y = np.unique(y)
+    X, Y = np.meshgrid(x, y)
+    Z = np.transpose(z.reshape(len(x),len(y)))
+    #fig, ax = plt.subplots()
+    plt.pcolor(X, Y, Z, cmap=plt.cm.Blues, vmin=colorlimit[0], vmax=colorlimit[1])
+    # put the major ticks at the middle of each cell
+    plt.xticks(x)
+    plt.yticks(y)
+    plt.grid(True, which='major') 
+    #legend
+    plt.colorbar()
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.draw()
     return 0
 
@@ -445,11 +503,11 @@ def find_yrange(data, pltxmin, pltxmax):
 def bayes_model_avg(fit_proc, arg_array):
     #bayesfactor = np.exp(fit_proc.logGBF - fit_proc.logGBF[0])/sum(np.exp(fit_proc.logGBF - fit_proc.logGBF[0]))
     #bayesfactor = fit_proc.logGBF - fit_proc.logGBF[0]
-    #norm = sum(bayesfactor)
-    normalized_bayesfactor = fit_proc.normbayesfactor #bayesfactor/norm
+    norm = sum(fit_proc.normbayesfactor)
+    normalized_bayesfactor = fit_proc.normbayesfactor/norm
     model_avg_fit = dict()
     for key in arg_array:
-        model_avg_fit[key] = sum(gv.gvar(fit_proc.read_boot0(key),fit_proc.read_boot0_sdev(key))*normalized_bayesfactor)
+        model_avg_fit[key] = sum(fit_proc.read_corrboot0(key)*normalized_bayesfactor)
     return model_avg_fit
 
 ### BEGIN MAIN ###

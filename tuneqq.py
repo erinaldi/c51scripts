@@ -21,8 +21,9 @@ def read_data(params):
         # effective mass
         eff = c51.effective_plots(T)
         meff = eff.effective_mass(c51.make_gvars(twopt_dat), 1, 'cosh')
-        xlim = [3, len(meff)]
+        xlim = [2, len(meff)]
         ylim = c51.find_yrange(meff, xlim[0], xlim[1])
+        ylim = [0.0, 0.2]
         c51.scatter_plot(np.arange(len(meff)), meff, params.hadron+' effective mass', xlim = xlim, ylim = ylim)
         # scaled correlator
         E0 = params.priors[params.hadron]['E0'][0]
@@ -55,6 +56,7 @@ if __name__=='__main__':
     fit_boot0, fit_bs = fit_proc()
     if params.plot_stab_flag == 'on':
         c51.stability_plot(fit_boot0, 'E0', params.hadron+' E0 ')
+        c51.stability_plot(fit_boot0, 'A0', params.hadron+' A0 ')
     if params.print_tbl_flag == 'on':
         tbl = c51.tabulate_result(fit_proc, ['A0', 'E0'])
         print tbl
