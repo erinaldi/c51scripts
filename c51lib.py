@@ -139,6 +139,8 @@ class process_params():
         self.ml = params['current_fit']['ml']
         self.ms = params['current_fit']['ms']
         self.hadron = params['current_fit']['hadron']
+        # bootstraps
+        self.nbs = params['current_fit']['nbs']
         # data location
         self.data_loc = params[self.ens][self.ms][self.ml]['data_loc']
         # priors
@@ -206,7 +208,6 @@ def x_indep(tmin, tmax):
 
 def y_dep(x, y, sets=1):
     for s in range(1, sets): x = np.concatenate((x, x+len(y)/sets))
-    #print x
     y = y[x]
     #print y
     return y
@@ -239,7 +240,10 @@ def fitscript(trange, data, prior, fcn, sets=1, result_flag='off'):
 
 # sets calculated
 def fitscript_v2(trange, T, data, priors, fcn, result_flag='off'):
-    sets = len(data)/(T/2)
+    if trange['tmax'][1] > T/2:
+        sets = len(data)/T
+    else:
+        sets = len(data)/(T/2)
     posterior = []
     tmintbl = []
     tmaxtbl = []
