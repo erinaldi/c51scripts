@@ -17,24 +17,75 @@ current_fit:
     #ms: 0.0491
     #ml: 0.00951
     #ens: 'l2448f211b580m0064m0640m828'
-    #ms: 0.0902
-    #ml: 0.00721
+    #ms: 0.0902 #unitary ms
+    #ml: 0.00721 #unitary ml
+    #ml: 0.00500 #pq ml light
+    #ms: 0.0952 #pq ms heavy
     ens: 'l2464f211b600m0102m0509m635'
     ms: 0.0693 #unitary
-    ms: 0.0731 #heavy pq
+    #ms: 0.0731 #heavy pq
     ml: 0.0126 #unitary
-    ml: 0.00995 #lighest pq
+    #ml: 0.00995 #lighest pq
     #for tuneqq: pion or etas
     hadron: 'pion'
     #for bootstrap
-    nbs: 0
+    nbs: 10
 plot_flags:
-    plot_data_flag: 'on'
+    plot_data_flag: 'off'
     print_fit_flag: 'off'
-    plot_stab_flag: 'on'
+    plot_stab_flag: 'off'
     print_tbl_flag: 'on'
     plot_hist_flag: 'off'
 l2464f211b600m0102m0509m635:
+    0.0693:
+        0.0126:
+            data_loc:
+                file_loc: '/Users/cchang5/Physics/c51/data/l2464f211b600m0102m0509m635a_avg.h5'
+                cfgs_srcs:    '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0693/cfgs_srcs'
+                mres_pion_mp: '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0126/midpoint_pseudo'
+                mres_pion_pp: '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0126/pseudo_pseudo'
+                mres_etas_mp: '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0693/midpoint_pseudo'
+                mres_etas_pp: '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0693/pseudo_pseudo'
+                spec_pion:    '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/spectrum/ml0p0126_ms0p0693/pion/corr'
+                spec_kaon:    '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/spectrum/ml0p0126_ms0p0693/kaon/corr'
+            priors:
+                etas:
+                    mres: [0.00047, 0.0003]
+                    A0: [0.0, 1.0]
+                    E0: [0.0, 1.0]
+                pion:
+                    mres: [0.00077, 0.0005]
+                    A0: [0.0021, 0.0021] # Z0_p*Z0_s for tuneqq.py
+                    F0: [-0.03, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.02, 0.01]
+                    Z0_p: [0.2, 0.1]
+                    E0: [0.190, 0.1] #[0.237, 0.02]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                kaon:
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.016, 0.01]
+                    Z0_p: [0.15, 0.1]
+                    E0: [0.33, 0.2]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+            trange:
+                mres:
+                    tmin: [2, 2]
+                    tmax: [61, 61]
+                twopt: # for pion / kaon only
+                    tmin: [4,10]
+                    tmax: [30,30]
+                decay_axial:
+                    tmin: [2,3]
+                    tmax: [23,23]
+                proton:
+                    tmin: [2,2]
+                    tmax: [14, 14]
     0.0731:
         0.0126:
             data_loc:
@@ -171,13 +222,6 @@ l2448f211b580m0064m0640m828:
                     Z1_s: [0.0, 1.0]
                     Z1_p: [0.0, 1.0]
                     E1: [0.1, 0.02]
-                proton:
-                    Z0_p: [0.0022, 0.001] # 0.000005
-                    Z0_s: [0.00004, 0.00002] # 0.9E-7
-                    E0: [0.8, 0.5]
-                    Z1_s: [0.0, 1.0]
-                    Z1_p: [0.0, 1.0]
-                    E1: [0.0, 1.0]
             trange:
                 mres:
                     tmin: [2, 2]
@@ -185,12 +229,91 @@ l2448f211b580m0064m0640m828:
                 twopt: # for pion / kaon only
                     tmin: [2,2]
                     tmax: [22,22]
-                decay_axial:
-                    tmin: [2,3]
-                    tmax: [23,23]
-                proton:
+        0.00500:
+            data_loc:
+                file_loc: '/Users/cchang5/Physics/c51/data/l2448f211b580m0064m0640m828a_avg.h5'
+                cfgs_srcs: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00500_ms0p0902/kaon/cfgs_srcs'
+                mres_pion_mp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00500/midpoint_pseudo'
+                mres_pion_pp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00500/pseudo_pseudo'
+                mres_etas_mp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0902/midpoint_pseudo'
+                mres_etas_pp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0902/pseudo_pseudo'
+                spec_pion: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00500_ms0p0902/pion/corr'
+                spec_kaon: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00500_ms0p0902/kaon/corr'
+            priors:
+                etas:
+                    mres: [0.00037, 0.0003]
+                    A0: [0.0, 0.0]
+                    E0: [0.0, 0.0]
+                pion:
+                    mres: [0.00058, 0.0005]
+                    A0: [0.0021, 0.0021] # Z0_p*Z0_s for tuneqq.py
+                    F0: [-0.03, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.03, 0.02]
+                    Z0_p: [0.32, 0.2]
+                    E0: [0.145, 0.1] #[0.237, 0.02]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                kaon:
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.02, 0.01]
+                    Z0_p: [0.2, 0.1]
+                    E0: [0.392, 0.2]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+            trange:
+                mres:
+                    tmin: [2, 2]
+                    tmax: [47, 47]
+                twopt: # for pion / kaon only
                     tmin: [2,2]
-                    tmax: [14, 14]
+                    tmax: [22,22]
+    0.0952:
+        0.00500:
+            data_loc:
+                file_loc: '/Users/cchang5/Physics/c51/data/l2448f211b580m0064m0640m828a_avg.h5'
+                cfgs_srcs: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00500_ms0p0952/kaon/cfgs_srcs'
+                mres_pion_mp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00500/midpoint_pseudo'
+                mres_pion_pp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00500/pseudo_pseudo'
+                mres_etas_mp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0952/midpoint_pseudo'
+                mres_etas_pp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0952/pseudo_pseudo'
+                spec_pion: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00500_ms0p0952/pion/corr'
+                spec_kaon: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00500_ms0p0952/kaon/corr'
+            priors:
+                etas:
+                    mres: [0.00037, 0.0003]
+                    A0: [0.0, 0.0]
+                    E0: [0.0, 0.0]
+                pion:
+                    mres: [0.00058, 0.0005]
+                    A0: [0.0021, 0.0021] # Z0_p*Z0_s for tuneqq.py
+                    F0: [-0.03, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.03, 0.02]
+                    Z0_p: [0.32, 0.2]
+                    E0: [0.145, 0.1] #[0.237, 0.02]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                kaon:
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.02, 0.01]
+                    Z0_p: [0.2, 0.1]
+                    E0: [0.392, 0.2]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+            trange:
+                mres:
+                    tmin: [2, 2]
+                    tmax: [47, 47]
+                twopt: # for pion / kaon only
+                    tmin: [2,2]
+                    tmax: [22,22]
 l3296f211b630m0074m037m440:
     0.0491:
         0.00951:

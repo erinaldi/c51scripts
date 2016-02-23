@@ -158,6 +158,8 @@ if __name__=='__main__':
     # generate bootstrap list
     draw_n = params.nbs
     draws = params.bs_draws(draw_n)
+    print draw_n
+    print draws
     # bootstrap mres
     mres_pion_fit = mres_bs(params, 'pion', draws)
     mres_etas_fit = mres_bs(params, 'etas', draws)

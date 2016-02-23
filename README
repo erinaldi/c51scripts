@@ -1,3 +1,30 @@
 Description of scripts
 
+master.yml
+specifies what ensemble to fit
+defines trange
+defines priors
+
+c51lib.py
+library for all analysis programs
+how to read / define parameters of master.yml
+how to read / process fits
+define fit functions
+define plotting functions
+
+tuneqq.py
+reads from master.yml
+used for tuning pion and etas mass
+fits for mres
+does one state fit only
+fits pion/etas individually with a switch
+
+decay_ward.py
+reads from master.yml
+fits mres
+fits pion / kaon two point
+does n-state fits
+combines for decay constant
+bootstraps for error
+
 
