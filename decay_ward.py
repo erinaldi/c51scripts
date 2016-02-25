@@ -139,27 +139,17 @@ def decay_fit(args):
 def decay_constant(params, Z0_p, E0, mres_pion, mres_etas='pion'):
     ml = params.ml
     ms = params.ms
-    if mres_etas=='pion':
+    if mres_etas == 'pion':
         constant = Z0_p*np.sqrt(2.)*(2.*ml+2.*mres_pion)/E0**(3./2.)
     else:
         constant = Z0_p*np.sqrt(2.)*(ml+ms+mres_pion+mres_etas)/E0**(3./2.)
     return constant
 
 if __name__=='__main__':
-    mres_data_flag = 'on'
-    mres_tbl_flag = 'on'
-    decay_constant_flag = 'off'
-    decay_histogram_flag = 'on'
-    # read parameters
-    #f = open('./master.yml','r')
-    #params = yaml.load(f)
-    #f.close()
     params = c51.process_params()
     # generate bootstrap list
     draw_n = params.nbs
     draws = params.bs_draws(draw_n)
-    print draw_n
-    print draws
     # bootstrap mres
     mres_pion_fit = mres_bs(params, 'pion', draws)
     mres_etas_fit = mres_bs(params, 'etas', draws)
@@ -177,7 +167,7 @@ if __name__=='__main__':
         c51.stability_plot(mres_etas_0, 'mres', 'etas mres')
         #plt.show()
     # print results
-    if mres_tbl_flag == 'on':
+    if params.print_mres_flag == 'on':
         tbl_print = collections.OrderedDict()
         tbl_print['tmin'] = mres_pion_proc.tmin
         tbl_print['tmax'] = mres_pion_proc.tmax
@@ -222,7 +212,7 @@ if __name__=='__main__':
     plttbl['fk/fpi'] = fk/fpi
     plttbl['fk/fpi_bserr(%)'] = np.std(fk_bs/fpi_bs, axis=0)*100
     print tabulate(plttbl, headers='keys')
-    if decay_histogram_flag == 'on':
+    if params.plot_hist_flag == 'on':
         fpi_bs = decay_constant(params, decay_pion_proc.read_bs('Z0_p'), decay_pion_proc.read_bs('E0'), mres_pion_proc.read_bs('mres'))
         fk_bs = decay_constant(params, decay_kaon_proc.read_bs('Z0_p'), decay_kaon_proc.read_bs('E0'), mres_pion_proc.read_bs('mres'), mres_etas_proc.read_bs('mres'))
         c51.histogram_plot(fpi_bs, xlabel='fpi')

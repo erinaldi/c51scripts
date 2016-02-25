@@ -125,11 +125,12 @@ class process_bootstrap():
 # reads master.yml and formats it
 class process_params():
     def __init__(self):
-        f = open('./master.yml','r')
+        f = open('./master.yml.enrico','r')
         params = yaml.load(f)
         f.close()
         # plotting flags
         self.plot_data_flag = params['plot_flags']['plot_data_flag']
+        self.print_mres_flag = params['plot_flags']['print_mres_flag']
         self.print_fit_flag = params['plot_flags']['print_fit_flag']
         self.plot_stab_flag = params['plot_flags']['plot_stab_flag']
         self.print_tbl_flag = params['plot_flags']['print_tbl_flag']
