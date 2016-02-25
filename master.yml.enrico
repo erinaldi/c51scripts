@@ -1,0 +1,267 @@
+#parameter file for decay constant fits
+current_fit:
+    ens: 'l2448f211b580m0064m0640m828'
+    ms: 0.0681
+    ml: 0.00425
+    #for tuneqq: pion or etas
+    hadron: 'pion'
+    #for bootstrap
+    nbs: 500
+plot_flags:
+    plot_data_flag: 'off'
+    plot_stab_flag: 'off'
+    print_mres_flag: 'on'
+    print_fit_flag: 'off'
+    print_tbl_flag: 'on'
+    plot_hist_flag: 'on'
+l2448f211b580m0064m0640m828:
+# this one is not present on LC machines
+    0.0902:
+        0.00721:
+            data_loc:
+                file_loc: '/Users/rinaldi2/Google Drive/LLNL/CalLat/data/l2448f211b580m0064m0640m828a_avg.h5'
+                cfgs_srcs: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00712/cfgs_srcs'
+                mres_pion_mp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00712/midpoint_pseudo'
+                mres_pion_pp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00712/pseudo_pseudo'
+                mres_etas_mp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0902/midpoint_pseudo'
+                mres_etas_pp: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0902/pseudo_pseudo'
+                phiqq_pion:
+                phiqq_etas:
+                spec_pion: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00712_ms0p0902/pion/corr'
+                spec_kaon: '/l2448f211b580m0064m0640m828a/wf1p0_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00712_ms0p0902/kaon/corr'
+                axial_ll:
+                axial_ls:
+                proton_spin_dn:
+                proton_spin_up:
+                proton_np_spin_dn:
+                proton_np_spin_up:
+            priors:
+                etas:
+                    mres: [0.00037, 0.0003]
+                    A0: [0.0, 1.0]
+                    E0: [0.0, 1.0]
+                pion:
+                    mres: [0.00058, 0.0005]
+                    A0: [0.0021, 0.0021] # Z0_p*Z0_s for tuneqq.py
+                    F0: [-0.03, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.03, 0.02]
+                    Z0_p: [0.32, 0.2]
+                    E0: [0.165, 0.1] #[0.237, 0.02]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                kaon:
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.02, 0.01]
+                    Z0_p: [0.2, 0.1]
+                    E0: [0.387, 0.2]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                proton:
+                    Z0_p: [0.0022, 0.001] # 0.000005
+                    Z0_s: [0.00004, 0.00002] # 0.9E-7
+                    E0: [0.8, 0.5]
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.0, 1.0]
+            trange:
+                mres:
+                    tmin: [2, 2]
+                    tmax: [47, 47]
+                twopt: # for pion / kaon only
+                    tmin: [2,2]
+                    tmax: [22,22]
+                decay_axial:
+                    tmin: [2,3]
+                    tmax: [23,23]
+                proton:
+                    tmin: [2,2]
+                    tmax: [14, 14]
+# enrico tuning this ensemble at different wilson flow times: 
+    0.0852:
+        0.00668:
+            data_loc:
+                file_loc: '/Users/rinaldi2/Google Drive/LLNL/CalLat/data/l2448f211b580m0064m0640m828a_avg.h5'
+                cfgs_srcs: '/l2448f211b580m0064m0640m828a/wf0p8_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p0852/cfgs_srcs'
+                mres_pion_mp: '/l2448f211b580m0064m0640m828a/wf0p8_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00668/midpoint_pseudo'
+                mres_pion_pp: '/l2448f211b580m0064m0640m828a/wf0p8_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00668/pseudo_pseudo'
+                mres_etas_mp: '/l2448f211b580m0064m0640m828a/wf0p8_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0852/midpoint_pseudo'
+                mres_etas_pp: '/l2448f211b580m0064m0640m828a/wf0p8_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0852/pseudo_pseudo'
+                phiqq_pion: '/l2448f211b580m0064m0640m828a/wf0p8_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p00668/corr'
+                phiqq_kaon: '/l2448f211b580m0064m0640m828a/wf0p8_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p0852/corr'
+                spec_pion: '/l2448f211b580m0064m0640m828a/wf0p8_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00668_ms0p0852/pion/corr'
+                spec_kaon: '/l2448f211b580m0064m0640m828a/wf0p8_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00668_ms0p0852/kaon/corr'
+            priors:
+                etas:
+                    mres: [0.001, 1.0]
+                    A0: [0.001, 0.01]
+                    E0: [0.5, 0.2]
+                pion:
+                    mres: [0.0, 1.0]
+                    A0: [0.005, 0.01]
+                    E0: [0.16, 0.02]
+                    F0: [-0.03, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.02, 0.01]
+                    Z0_p: [0.33, 0.01]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.1, 0.5]
+                    Z1_p: [1.0, 0.5]
+                    E1: [0.1, 0.02]
+                kaon:
+                    A0: [0.002, 0.0015]
+                    E0: [0.38, 0.02]
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.01, 0.01]
+                    Z0_p: [0.2, 0.1]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.01, 0.1]
+                    Z1_p: [0.01, 0.1]
+                    E1: [0.1, 0.05]
+            trange:
+                twopt:
+                    tmin: [6,6]
+                    tmax: [22,22]
+                mres:
+                    tmin: [3,3]
+                    tmax: [45,45]
+    0.0800:
+        0.00615:
+            data_loc:
+                file_loc: '/Users/rinaldi2/Google Drive/LLNL/CalLat/data/l2448f211b580m0064m0640m828a_avg.h5'
+                cfgs_srcs: '/l2448f211b580m0064m0640m828a/wf0p6_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p0800/cfgs_srcs'
+                mres_pion_mp: '/l2448f211b580m0064m0640m828a/wf0p6_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00615/midpoint_pseudo'
+                mres_pion_pp: '/l2448f211b580m0064m0640m828a/wf0p6_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00615/pseudo_pseudo'
+                mres_etas_mp: '/l2448f211b580m0064m0640m828a/wf0p6_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0800/midpoint_pseudo'
+                mres_etas_pp: '/l2448f211b580m0064m0640m828a/wf0p6_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0800/pseudo_pseudo'
+                phiqq_pion: '/l2448f211b580m0064m0640m828a/wf0p6_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p00615/corr'
+                phiqq_kaon: '/l2448f211b580m0064m0640m828a/wf0p6_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p0800/corr'
+                spec_pion: '/l2448f211b580m0064m0640m828a/wf0p6_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00615_ms0p0800/pion/corr'
+                spec_kaon: '/l2448f211b580m0064m0640m828a/wf0p6_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00615_ms0p0800/kaon/corr'
+            priors:
+                etas:
+                    mres: [0.001, 1.0]
+                    A0: [0.005, 0.004]
+                    E0: [0.19, 0.16]
+                pion:
+                    mres: [0.0, 1.0]
+                    A0: [0.005, 0.004]
+                    E0: [0.16, 0.02]
+                    F0: [-0.03, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.02, 0.01]
+                    Z0_p: [0.36, 0.02]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+                kaon:
+                    A0: [0.002, 0.0015]
+                    E0: [0.38, 0.01]
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.01, 0.01]
+                    Z0_p: [0.2, 0.1]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.0, 1.0]
+                    Z1_p: [0.0, 1.0]
+                    E1: [0.1, 0.02]
+            trange:
+                twopt:
+                    tmin: [6,6]
+                    tmax: [22,22]
+                mres:
+                    tmin: [3,3]
+                    tmax: [44,44]
+    0.0738:
+        0.00532:
+            data_loc:
+                file_loc: '/Users/rinaldi2/Google Drive/LLNL/CalLat/data/l2448f211b580m0064m0640m828a_avg.h5'
+                cfgs_srcs: '/l2448f211b580m0064m0640m828a/wf0p4_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p0738/cfgs_srcs'
+                mres_pion_mp: '/l2448f211b580m0064m0640m828a/wf0p4_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00532/midpoint_pseudo'
+                mres_pion_pp: '/l2448f211b580m0064m0640m828a/wf0p4_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00532/pseudo_pseudo'
+                mres_etas_mp: '/l2448f211b580m0064m0640m828a/wf0p4_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0738/midpoint_pseudo'
+                mres_etas_pp: '/l2448f211b580m0064m0640m828a/wf0p4_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0738/pseudo_pseudo'
+                phiqq_pion: '/l2448f211b580m0064m0640m828a/wf0p4_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p00532/corr'
+                phiqq_kaon: '/l2448f211b580m0064m0640m828a/wf0p4_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p0738/corr'
+                spec_pion: '/l2448f211b580m0064m0640m828a/wf0p4_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00532_ms0p0738/pion/corr'
+                spec_kaon: '/l2448f211b580m0064m0640m828a/wf0p4_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00532_ms0p0738/kaon/corr'
+            priors:
+                etas:
+                    mres: [0.001, 1.0]
+                    A0: [0.001, 0.01]
+                    E0: [0.5, 0.2]
+                pion:
+                    mres: [0.0, 1.0]
+                    A0: [0.005, 0.01]
+                    E0: [0.16, 0.02]
+                    F0: [-0.03, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.02, 0.01]
+                    Z0_p: [0.35, 0.05]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.1, 0.5]
+                    Z1_p: [1.0, 0.5]
+                    E1: [0.1, 0.02]
+                kaon:
+                    A0: [0.002, 0.0015]
+                    E0: [0.38, 0.02]
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.01, 0.01]
+                    Z0_p: [0.25, 0.01]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.01, 0.1]
+                    Z1_p: [0.01, 0.1]
+                    E1: [0.1, 0.05]
+            trange:
+                twopt:
+                    tmin: [6,6]
+                    tmax: [22,22]
+                mres:
+                    tmin: [3,3]
+                    tmax: [45,45]
+    0.0681:
+        0.00425:
+            data_loc:
+                file_loc: '/Users/rinaldi2/Google Drive/LLNL/CalLat/data/l2448f211b580m0064m0640m828a_avg.h5'
+                cfgs_srcs: '/l2448f211b580m0064m0640m828a/wf0p2_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p0681/cfgs_srcs'
+                mres_pion_mp: '/l2448f211b580m0064m0640m828a/wf0p2_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00425/midpoint_pseudo'
+                mres_pion_pp: '/l2448f211b580m0064m0640m828a/wf0p2_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p00425/pseudo_pseudo'
+                mres_etas_mp: '/l2448f211b580m0064m0640m828a/wf0p2_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0681/midpoint_pseudo'
+                mres_etas_pp: '/l2448f211b580m0064m0640m828a/wf0p2_m51p3_l516_a52p5_smrw4p5_n60/dwf_jmu/mq0p0681/pseudo_pseudo'
+                phiqq_pion: '/l2448f211b580m0064m0640m828a/wf0p2_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p00425/corr'
+                phiqq_kaon: '/l2448f211b580m0064m0640m828a/wf0p2_m51p3_l516_a52p5_smrw4p5_n60/phi_qq/mq0p0681/corr'
+                spec_pion: '/l2448f211b580m0064m0640m828a/wf0p2_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00425_ms0p0681/pion/corr'
+                spec_kaon: '/l2448f211b580m0064m0640m828a/wf0p2_m51p3_l516_a52p5_smrw4p5_n60/spectrum/ml0p00425_ms0p0681/kaon/corr'
+            priors:
+                etas:
+                    mres: [0.001, 1.0]
+                    A0: [0.001, 0.01]
+                    E0: [0.5, 0.2]
+                pion:
+                    mres: [0.0, 1.0]
+                    A0: [0.005, 0.01]
+                    E0: [0.16, 0.02]
+                    F0: [-0.03, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.01, 0.02]
+                    Z0_p: [0.4, 0.1]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.1, 0.5]
+                    Z1_p: [1.0, 0.5]
+                    E1: [0.1, 0.02]
+                kaon:
+                    A0: [0.002, 0.0015]
+                    E0: [0.38, 0.02]
+                    F0: [-0.035, 0.01] # amplitude for axial_ll
+                    Z0_s: [0.01, 0.01]
+                    Z0_p: [0.2, 0.1]
+                    F1: [0.0, 1.0] # amplitude for axial_ll
+                    Z1_s: [0.01, 0.1]
+                    Z1_p: [0.01, 0.1]
+                    E1: [0.1, 0.05]
+            trange:
+                twopt:
+                    tmin: [6,6]
+                    tmax: [22,22]
+                mres:
+                    tmin: [3,3]
+                    tmax: [45,45]
