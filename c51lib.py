@@ -10,6 +10,14 @@ import lsqfit
 import collections
 from tabulate import tabulate
 from pandas import DataFrame
+import os
+
+### Define user information ###
+def user_list():
+    username = os.environ['USER']
+    if username in ['cchang5', 'chang49']:
+        name_flag = 'jason'
+    return name_flag
 
 ### READ DATASET ###
 def parameters():
@@ -125,7 +133,8 @@ class process_bootstrap():
 # reads master.yml and formats it
 class process_params():
     def __init__(self):
-        f = open('./master.yml.enrico','r')
+        user_flag = user_list()
+        f = open('./master.yml.%s' %(user_flag),'r')
         params = yaml.load(f)
         f.close()
         # plotting flags
@@ -573,20 +582,20 @@ if __name__=='__main__':
     #dmeff_fit = fitscript(trange, dmeff, prior, dmeff_fitfcn)
     #plot_stability(dmeff_fit, 'ME')	
 
-    twopt = read_data('prot_w6p1_n94')
-    twopt_gv = make_gvars(twopt)
-    trange = read_trange()
-    prior = read_prior()
-    meff = effective_mass(twopt_gv)
-    pltxmin = parameters()['pltxmin']
-    pltxmax = parameters()['pltxmax']
-    x = np.arange(len(meff))
-    yrange = find_yrange(meff, pltxmin, pltxmax)
-    plot_scatter(x, meff, 'meff', 'time', 'meff', xlim=[pltxmin, pltxmax], ylim=yrange)
-    twopt_fit = fitscript(trange, twopt_gv, prior, twopt_fitfcn)
-    plot_stability(twopt_fit, 'E0')
+    #twopt = read_data('prot_w6p1_n94')
+    #twopt_gv = make_gvars(twopt)
+    #trange = read_trange()
+    #prior = read_prior()
+    #meff = effective_mass(twopt_gv)
+    #pltxmin = parameters()['pltxmin']
+    #pltxmax = parameters()['pltxmax']
+    #x = np.arange(len(meff))
+    #yrange = find_yrange(meff, pltxmin, pltxmax)
+    #plot_scatter(x, meff, 'meff', 'time', 'meff', xlim=[pltxmin, pltxmax], ylim=yrange)
+    #twopt_fit = fitscript(trange, twopt_gv, prior, twopt_fitfcn)
+    #plot_stability(twopt_fit, 'E0')
  
-    #Keep plots open at the end of the code
-    if parameters()['plt_flag']=='on': plt.show()
-    else: pass
-
+    ##Keep plots open at the end of the code
+    #if parameters()['plt_flag']=='on': plt.show()
+    #else: pass
+    process_params()
