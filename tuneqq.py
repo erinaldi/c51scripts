@@ -23,7 +23,7 @@ def read_data(params):
         meff = eff.effective_mass(c51.make_gvars(twopt_dat), 1, 'cosh')
         xlim = [2, len(meff)]
         ylim = c51.find_yrange(meff, xlim[0], xlim[1])
-        ylim = [0.0, 0.2]
+        ylim = [0.0, 0.7]
         c51.scatter_plot(np.arange(len(meff)), meff, params.hadron+' effective mass', xlim = xlim, ylim = ylim)
         # scaled correlator
         E0 = params.priors[params.hadron]['E0'][0]

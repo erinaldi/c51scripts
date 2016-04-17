@@ -21,7 +21,6 @@ def read_proton(pr):
     p_avg = c51.parity_avg(p_savg, pnp_savg, phase=-1.0)
     T = len(p_avg[0])
     p_avg = p_avg[:, :T/2] # keep only first half of data ('folded' length)
-    print len(p_avg)
     if pr.plot_data_flag == 'on':
         # folded correlator data
         p_ss = p_avg[:,:,0,0]
@@ -33,6 +32,7 @@ def read_proton(pr):
         meff_ss = eff.effective_mass(c51.make_gvars(p_ss)[1:], 1, 'cosh')
         meff_ps = eff.effective_mass(c51.make_gvars(p_ps)[1:], 1, 'cosh')
         xlim = [1, len(meff_ss)] #*2/5]
+        #ylim = [0.7, 1.1]
         ylim = [0.3, 0.9]
         #ylim = c51.find_yrange(meff_ss, xlim[0], xlim[1])
         c51.scatter_plot(np.arange(len(meff_ss))+1, meff_ss, 'proton ss effective mass', xlim = xlim, ylim = ylim)
@@ -42,9 +42,9 @@ def read_proton(pr):
         E0 = pr.priors['proton']['E0'][0]
         scaled_ss = eff.scaled_correlator(c51.make_gvars(p_ss), E0, phase=1.0)
         scaled_ps = eff.scaled_correlator(c51.make_gvars(p_ps), E0, phase=1.0)
-        ylim = c51.find_yrange(scaled_ss, xlim[0], xlim[1])
+        ylim = c51.find_yrange(scaled_ss, xlim[0], xlim[1]/2)
         c51.scatter_plot(np.arange(len(scaled_ss)), scaled_ss, 'proton ss scaled correlator (take sqrt to get Z0_s)', xlim = xlim, ylim = ylim)
-        ylim = c51.find_yrange(scaled_ps, xlim[0], xlim[1])
+        ylim = c51.find_yrange(scaled_ps, xlim[0], xlim[1]/2)
         c51.scatter_plot(np.arange(len(scaled_ps)), scaled_ps, 'proton ps scaled correlator (divide by Z0_s to get Z0_p)', xlim = xlim, ylim = ylim)
     return p_avg, T
 
@@ -54,13 +54,23 @@ def fit_proton(pr, p_avg, T):
     # trange
     trange = pr.trange['proton']
     # make data
+    # ss + ps
     p_data = np.concatenate((p_avg[:,:,0,0], p_avg[:,:,3,0]), axis=1)
+    # ss
+    #p_data = p_avg[:,:,0,0]
+    # ps
+    #p_data = p_avg[:,:,3,0]
     p_data = c51.make_gvars(p_data)
     # fit
     grandfit = dict()
-    for n in range(4,5):
+    for n in range(2,3):
         fitfcn = c51.fit_function(T, nstates=n)
+        # ss + ps
         fit = c51.fitscript_v2(trange, T, p_data, priors, fitfcn.twopt_fitfcn_ss_ps, pr.print_fit_flag)
+        # ss
+        #fit = c51.fitscript_v2(trange, T, p_data, priors, fitfcn.twopt_fitfcn_ss, pr.print_fit_flag)
+        # ps
+        #fit = c51.fitscript_v2(trange, T, p_data, priors, fitfcn.twopt_fitfcn_ps, pr.print_fit_flag)
         for k in fit.keys():
             try:
                 grandfit[k] = np.concatenate((grandfit[k], fit[k]), axis=0)
@@ -87,7 +97,7 @@ if __name__=='__main__':
         c51.stability_plot(fit_boot0, 'Z0_p', 'proton Z0_p ')
         c51.stability_plot(fit_boot0, 'Z0_s', 'proton Z0_s ')
     if pr.print_tbl_flag == 'on':
-        tbl = c51.tabulate_result(fit_proc, ['Z0_s', 'Z0_p', 'E0']) #, 'RA_s', 'RA_p', 'RE_s', 'RE_p'])
+        tbl = c51.tabulate_result(fit_proc, ['Z0_s', 'Z0_p', 'E0'])
         print tbl
     #c51.heatmap(fit_proc.nstates, fit_proc.tmin, fit_proc.normbayesfactor, [0,1], 'Bayes Factor', 'nstates', 'tmin')
     #c51.heatmap(fit_proc.nstates, fit_proc.tmin, fit_proc.chi2dof, [0,3], 'chi2/dof', 'nstates', 'tmin')
@@ -99,21 +109,11 @@ if __name__=='__main__':
     #bma = c51.bayes_model_avg(fit_proc, ['Z0_p', 'Z0_s', 'E0'])
     #print bma
     # look at small t values
-    fcn_cls = c51.fit_function(T,nstates=4)
-    fitraw = fit[0,1]['rawoutput']
-    fit_y = fcn_cls.twopt_fitfcn_ss_ps(fitraw.x, fitraw.p)
-    data_y = fitraw.y
-    diff = data_y - fit_y
-    c51.scatter_plot(fitraw.x, diff[:len(diff)/2], title='ss difference', xlim=[fitraw.x[0]-1, fitraw.x[-1]+1])
-    c51.scatter_plot(fitraw.x, diff[len(diff)/2:], title='ps difference', xlim=[fitraw.x[0]-1, fitraw.x[-1]+1])
-    #eff_cls = c51.effective_plots(T)
-    #meff = eff_cls.effective_mass(diff[:T/2-1],tau=1)
-    #xlim = [0,len(fitraw.x)]
-    #c51.scatter_plot(fitraw.x, meff, xlim=xlim, ylim=[0,1])
-    #meff = eff_cls.effective_mass(diff[T/2-1:],tau=1)
-    #c51.scatter_plot(fitraw.x, meff, xlim=xlim, ylim=[0,1])
-    #scale = eff_cls.scaled_correlator(diff[:T/2-1],0.19)
-    #c51.scatter_plot(fitraw.x, scale)
-    #scale = eff_cls.scaled_correlator(diff[T/2-1:],0.33)
-    #c51.scatter_plot(fitraw.x, scale)
+    #fcn_cls = c51.fit_function(T,nstates=1)
+    #fitraw = fit[0,1]['rawoutput']
+    #fit_y = fcn_cls.twopt_fitfcn_ss_ps(fitraw.x, fitraw.p)
+    #data_y = fitraw.y
+    #diff = data_y - fit_y
+    #c51.scatter_plot(fitraw.x, diff[:len(diff)/2], title='ss difference', xlim=[fitraw.x[0]-1, fitraw.x[-1]+1])
+    #c51.scatter_plot(fitraw.x, diff[len(diff)/2:], title='ps difference', xlim=[fitraw.x[0]-1, fitraw.x[-1]+1])
     plt.show()

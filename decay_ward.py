@@ -161,10 +161,13 @@ if __name__=='__main__':
         print mres_etas_proc()[0]['rawoutput']
     # plot mres stability
     if params.plot_stab_flag == 'on':
-        mres_pion_0, mres_pion_n = mres_pion_proc()
-        mres_etas_0, mres_etas_n = mres_etas_proc()
-        c51.stability_plot(mres_pion_0, 'mres', 'pion mres')
-        c51.stability_plot(mres_etas_0, 'mres', 'etas mres')
+        try:
+            mres_pion_0, mres_pion_n = mres_pion_proc()
+            mres_etas_0, mres_etas_n = mres_etas_proc()
+            c51.stability_plot(mres_pion_0, 'mres', 'pion mres')
+            c51.stability_plot(mres_etas_0, 'mres', 'etas mres')
+        except:
+            print 'error encountered'
         #plt.show()
     # print results
     if params.print_mres_flag == 'on':

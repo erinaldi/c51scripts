@@ -149,6 +149,9 @@ class process_params():
         self.ml = params['current_fit']['ml']
         self.ms = params['current_fit']['ms']
         self.hadron = params['current_fit']['hadron']
+        self.baryon2pt = params['current_fit']['baryon2pt']
+        # nstates
+        self.nstates = params['current_fit']['nstates']
         # bootstraps
         self.nbs = params['current_fit']['nbs']
         # data location
@@ -301,13 +304,13 @@ def tabulate_result(fit_proc, parameters):
     tbl['tmin'] = fit_proc.tmin
     tbl['tmax'] = fit_proc.tmax
     for p in parameters:
-        tbl[p] = gv.gvar(fit_proc.read_boot0(p), fit_proc.read_boot0_sdev(p))
-        #tbl[p+' err'] = fit_proc.read_boot0_sdev(p)
+        tbl[p] = fit_proc.read_boot0(p) #gv.gvar(fit_proc.read_boot0(p), fit_proc.read_boot0_sdev(p))
+        tbl[p+' err'] = fit_proc.read_boot0_sdev(p)
     tbl['chi2/dof'] = fit_proc.chi2dof
-    tbl['logGBF'] = fit_proc.logGBF
-    tbl['normBF'] = fit_proc.normbayesfactor
-    tbl['logpost'] = fit_proc.logposterior
-    tbl['normpost'] = fit_proc.normposterior 
+    #tbl['logGBF'] = fit_proc.logGBF
+    #tbl['normBF'] = fit_proc.normbayesfactor
+    #tbl['logpost'] = fit_proc.logposterior
+    #tbl['normpost'] = fit_proc.normposterior 
     return tabulate(tbl, headers='keys')
 
 #FIT FUNCTIONS
@@ -323,11 +326,9 @@ class fit_function():
     def twopt_fitfcn_ss(self, t, p):
         En = p['E0']
         fitfcn = p['Z0_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) + np.exp(-1*En*(self.T+t)))
-        #fitfcn = p['Z0_s']*np.exp(-1*En*t)
         for n in range(1, self.nstates):
             En += np.exp(p['E'+str(n)])
             fitfcn += p['Z'+str(n)+'_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) + np.exp(-1*En*(self.T+t)))
-            #fitfcn += p['Z'+str(n)+'_s']*np.exp(-1*En*t)
         # random variable fit
         #fitfcn += p['RA_s']*np.exp(-p['RE_s']*t)
         return fitfcn
@@ -336,13 +337,9 @@ class fit_function():
         En = p['E0']
         En_p = 0
         fitfcn = p['Z0_p']*p['Z0_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) + np.exp(-1*En*(self.T+t)))
-        #fitfcn = p['Z0_p']*np.exp(-1*En*t)
         for n in range(1, self.nstates):
             En += np.exp(p['E'+str(n)])
             fitfcn += p['Z'+str(n)+'_p']*p['Z'+str(n)+'_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) + np.exp(-1*En*(self.T+t)))
-            #En_p += np.exp(p['E'+str(n)+'_n'])
-            #fitfcn += -1.0*p['Z'+str(n)+'_p_n']**2*np.exp(En_p*t)
-            #fitfcn += p['Z'+str(n)+'_p']*np.exp(-1*En*t)
         # random variable fit
         #fitfcn += p['RA_p']*np.exp(-p['RE_p']*t)
         return fitfcn
