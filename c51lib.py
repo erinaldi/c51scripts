@@ -171,6 +171,13 @@ class process_params():
         draws = np.concatenate((boot0, draws), axis=0)
         return draws
 
+class process_sqlparams():
+    def __init__(self):
+        user_flag = user_list()
+        f = open('./sqlmaster.yml.%s' %(user_flag),'r')
+        params = yaml.load(f)
+        f.close()
+        
 ###    `. ---)..(
 ###      ||||(,o)
 ###      "`'" \__/
@@ -325,10 +332,10 @@ class fit_function():
     # two point smear smear source sink
     def twopt_fitfcn_ss(self, t, p):
         En = p['E0']
-        fitfcn = p['Z0_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) + np.exp(-1*En*(self.T+t)))
+        fitfcn = p['Z0_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t))) 
         for n in range(1, self.nstates):
             En += np.exp(p['E'+str(n)])
-            fitfcn += p['Z'+str(n)+'_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) + np.exp(-1*En*(self.T+t)))
+            fitfcn += p['Z'+str(n)+'_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)))
         # random variable fit
         #fitfcn += p['RA_s']*np.exp(-p['RE_s']*t)
         return fitfcn

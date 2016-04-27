@@ -1,3 +1,7 @@
 *.pyc
 *.swp
 *.swo
+
+james.py
+
+password_file.py
