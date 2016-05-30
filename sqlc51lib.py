@@ -51,6 +51,17 @@ def read_init(fit,t):
         init[k] = fit['pmean'][t][k]
     return init
 
+### filter prior selection
+def baryon_priors(priors,basak,nstates):
+    p = dict()
+    for n in range(nstates):
+        for k in priors[n+1].keys():
+            k0 = k.split('_')[0]
+            basak.append('E%s' %str(n))
+            if k0 in basak:
+                p[k] = priors[n+1][k]
+    return p
+
 ### READ DATASET ###
 def parity_avg(pos, neg, phase=1):
     neg = phase*np.roll(np.array(neg[:,::-1]), 1, axis=1)
@@ -135,14 +146,17 @@ def x_indep(tmin, tmax):
     return x
 
 def y_dep(x, y, sets=1):
-    for s in range(1, sets): x = np.concatenate((x, x+len(y)/sets))
-    y = y[x]
+    xh = x
+    for s in range(1, sets):
+        xh = np.append(xh,x+s*len(y)/sets)
+    y = y[xh]
     #print y
     return y
 
 # sets calculated
-def fitscript_v2(trange,T,data,priors,fcn,init=None):
+def fitscript_v2(trange,T,data,priors,fcn,init=None,basak=None):
     sets = len(data)/T
+    print "sets:", sets
     pmean = []
     psdev = []
     post = []
@@ -158,6 +172,9 @@ def fitscript_v2(trange,T,data,priors,fcn,init=None):
         for tmax in range(trange['tmax'][0], trange['tmax'][1]+1):
             x = x_indep(tmin, tmax)
             y = y_dep(x, data, sets)
+            if basak is not None:
+                x = {'indep': x, 'basak': basak}
+            else: pass
             fit = lsqfit.nonlinear_fit(data=(x,y),prior=priors,fcn=fcn,p0=init)
             pmean.append(fit.pmean)
             psdev.append(fit.psdev)
@@ -217,8 +234,6 @@ class fit_function():
         for n in range(1, self.nstates):
             En += np.exp(p['E'+str(n)])
             fitfcn += p['Z'+str(n)+'_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)))
-        # random variable fit
-        #fitfcn += p['RA_s']*np.exp(-p['RE_s']*t)
         return fitfcn
     # two point point smear source sink
     def twopt_fitfcn_ps(self, t, p):
@@ -228,8 +243,28 @@ class fit_function():
         for n in range(1, self.nstates):
             En += np.exp(p['E'+str(n)])
             fitfcn += p['Z'+str(n)+'_p']*p['Z'+str(n)+'_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) )
-        # random variable fit
-        #fitfcn += p['RA_p']*np.exp(-p['RE_p']*t)
+        return fitfcn
+    def twopt_fitfcn_pp(self, t, p):
+        En = p['E0']
+        fitfcn = p['Z0_p']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)))
+        for n in range(1, self.nstates):
+            En += np.exp(p['E'+str(n)])
+            fitfcn += p['Z'+str(n)+'_p']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)))
+        return fitfcn
+    # baryon two points
+    def twopt_baryon_ss(self,t,p,b):
+        En = p['E0']
+        fitfcn = p['%s_Z0s' %b]**2 * np.exp(-1*En*t)
+        for n in range(1, self.nstates):
+            En += np.exp(p['E'+str(n)])
+            fitfcn += p['%s_Z%ss' %(b,str(n))]**2 * np.exp(-1*En*t)
+        return fitfcn
+    def twopt_baryon_ps(self,t,p,b):
+        En = p['E0']
+        fitfcn = p['%s_Z0s' %b]*p['%s_Z0p' %b] * np.exp(-1*En*t)
+        for n in range(1, self.nstates):
+            En += np.exp(p['E'+str(n)])
+            fitfcn += p['%s_Z%ss' %(b,str(n))]*p['%s_Z%sp' %(b,str(n))] * np.exp(-1*En*t)
         return fitfcn
     def twopt_fitfcn_phiqq(self, t, p):
         En = p['E0']
@@ -241,6 +276,25 @@ class fit_function():
         fitfcn_ss = self.twopt_fitfcn_ss(t, p)
         fitfcn_ps = self.twopt_fitfcn_ps(t, p)
         fitfcn = np.concatenate((fitfcn_ss, fitfcn_ps))
+        return fitfcn
+    def twopt_fitfcn_ss_pp(self,t,p):
+        fitfcn_ss = self.twopt_fitfcn_ss(t,p)
+        fitfcn_pp = self.twopt_fitfcn_pp(t,p)
+        fitfcn = np.concatenate((fitfcn_ss,fitfcn_pp))
+        return fitfcn
+    # baryon two point simultaneous fit
+    def twopt_baryon_ss_ps(self,t,p):
+        ssl = []
+        psl = []
+        for b in t['basak']:
+            ssl.append(self.twopt_baryon_ss(t['indep'],p,b))
+            psl.append(self.twopt_baryon_ps(t['indep'],p,b))
+        ss = ssl[0]
+        ps = psl[0]
+        for i in range(len(ssl)-1):
+            ss = np.concatenate((ss,ssl[i+1]))
+            ps = np.concatenate((ps,psl[i+1]))
+        fitfcn = np.concatenate((ss,ps))
         return fitfcn
     # axial_ll and two point ss simultaneous fit
     def axial_twoptss_fitfcn(self, t, p):

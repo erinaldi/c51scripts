@@ -115,6 +115,7 @@ class pysql():
             sql_cmd = "SELECT id FROM callat_proj.init WHERE tag='%s' AND mean='%s';" %(str(k),str(json[k]))
             self.cur.execute(sql_cmd)
             init_id.append(self.cur.fetchone()[0])
+        init_id = np.sort(init_id).tolist()
         init_id = str(init_id).replace('[','{').replace(']','}')
         return init_id
     def priorid(self,json):

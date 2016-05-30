@@ -46,6 +46,7 @@ def read_proton(pr):
         c51.scatter_plot(np.arange(len(scaled_ss)), scaled_ss, 'proton ss scaled correlator (take sqrt to get Z0_s)', xlim = xlim, ylim = ylim)
         ylim = c51.find_yrange(scaled_ps, xlim[0], xlim[1]/2)
         c51.scatter_plot(np.arange(len(scaled_ps)), scaled_ps, 'proton ps scaled correlator (divide by Z0_s to get Z0_p)', xlim = xlim, ylim = ylim)
+        plt.show()
     return p_avg, T
 
 def fit_proton(pr, p_avg, T):

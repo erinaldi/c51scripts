@@ -41,7 +41,7 @@ current_fit:
     nbs: 10
 plot_flags:
     plot_data_flag: 'on'
-    plot_stab_flag: 'on'
+    plot_stab_flag: 'off'
     print_mres_flag: 'on'
     print_fit_flag: 'off'
     print_tbl_flag: 'on'
