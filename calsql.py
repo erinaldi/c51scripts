@@ -11,7 +11,7 @@ except:
 
 class pysql():
     def __init__(self,nerscusr,sqlusr,pwd):
-        subprocess.call('ssh -fCN %s@cori.nersc.gov -o TCPKeepAlive=yes -L 5555:scidb1.nersc.gov:5432' %(nerscusr), shell=True)
+        subprocess.call('ssh -fCN %s@edison.nersc.gov -o TCPKeepAlive=yes -L 5555:scidb1.nersc.gov:5432' %(nerscusr), shell=True)
         hostname='localhost'
         databasename='c51_project2'
         portnumber='5555'
@@ -85,7 +85,7 @@ class pysql():
             self.dict_cur.execute(sql_cmd)
             return self.dict_cur.fetchone()
         elif tbl=='dwhisq_fhcorr_baryon':
-            sql_cmd = "SELECT * from summary_baryon where meta_id='%s'" %str(meta_id)
+            sql_cmd = "SELECT * from summary_fhbaryon where meta_id='%s'" %str(meta_id)
             self.dict_cur.execute(sql_cmd)
             return self.dict_cur.fetchone()
         else:
@@ -216,7 +216,39 @@ class pysql():
             self.cur.execute(sql_cmd)
             self.conn.commit()
         return 0
+    def submit_fhboot0(self,tbl,corr_lst,baryon_id,fit_id,tmin,tmax,init,prior,result,update=False):
+        # get header
+        sql_cmd = "SELECT column_name FROM information_schema.columns WHERE table_name='%s';" %str(tbl)
+        self.cur.execute(sql_cmd)
+        header = np.squeeze(self.cur.fetchall())[1:-2]
+        # get all correlator ids
+        ncorr = sum(['fhcorr' in c for c in header])
+        corr = [str(int(i)) for i in np.concatenate((np.sort(corr_lst),[0 for c in range(ncorr-len(corr_lst))]))]
+        # write values
+        values = "'%s','%s','%s','%s','%s','%s','%s','%s'" %("','".join(corr),baryon_id,fit_id,tmin,tmax,init,prior,result)
+        # get header
+        header = ','.join(header)
+        insert = "INSERT INTO callat_proj.%s (%s) VALUES (%s)" %(tbl,header,values)
+        if not update:
+            sql_cmd = "SELECT callat_fcn.upsert($$%s$$);" %(insert)
+            self.cur.execute(sql_cmd)
+            self.conn.commit()
+        elif update:
+            where = ' AND '.join(["%s=%s'" %(header.split(',')[i],values.split("',")[i]) for i in range(len(header.split(','))-1)]+["commit_user='%s'" %(self.user)])
+            update = "UPDATE callat_proj.%s SET (%s)=(%s) WHERE %s" %(tbl,header,values,where)
+            sql_cmd = "SELECT callat_fcn.upsert($$%s$$,$$%s$$);" %(insert,update)
+            self.cur.execute(sql_cmd)
+            self.conn.commit()
+        return 0
     def select_boot0(self,tbl,corr_lst,fit_id,tmin,tmax,init_id,prior_id):
+        # get header
+        sql_cmd = "SELECT column_name FROM information_schema.columns WHERE table_name='%s';" %str(tbl)
+        self.cur.execute(sql_cmd)
+        header = np.squeeze(self.cur.fetchall())[1:-2]
+        # get all correlator ids
+        ncorr = sum(['corr' in c for c in header])
+        corr_lst = [str(int(i)) for i in np.concatenate((np.sort(corr_lst),[0 for c in range(ncorr-len(corr_lst))]))]
+        # get boot0id
         corr = ' AND '.join(["corr%s_id='%s'" %(str(i+1),corr_lst[i]) for i in range(len(corr_lst))])
         sql_cmd = "SELECT id FROM %s WHERE %s AND fit_id='%s' AND tmin='%s' AND tmax='%s' AND init_id='%s' AND prior_id='%s' AND commit_user='%s';" %(str(tbl),str(corr),str(fit_id),str(tmin),str(tmax),init_id,prior_id,str(self.user))
         self.cur.execute(sql_cmd)

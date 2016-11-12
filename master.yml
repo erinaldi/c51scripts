@@ -1,74 +1,51 @@
 #parameter file for decay constant fits
-current_fit:
-    ens: 'l2464f211b600m0102m0509m635'
-    ms: 0.0693 #unitary
-    ml: 0.0126 #unitary
-    #for tuneqq: pion or etas
-    hadron: 'pion'
-    #for bootstrap
-    nbs: 10
-plot_flags:
-    plot_data_flag: 'off'
-    plot_stab_flag: 'off'
-    print_mres_flag: 'on'
-    print_fit_flag: 'off'
-    print_tbl_flag: 'on'
-    plot_hist_flag: 'on'
-l2464f211b600m0102m0509m635:
-    0.0693:
-        0.0126:
-            data_loc:
-                file_loc: '/Users/cchang5/Physics/c51/data/l2464f211b600m0102m0509m635a_avg.h5'
-                cfgs_srcs:    '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0693/cfgs_srcs'
-                mres_pion_mp: '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0126/midpoint_pseudo'
-                mres_pion_pp: '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0126/pseudo_pseudo'
-                mres_etas_mp: '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0693/midpoint_pseudo'
-                mres_etas_pp: '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/dwf_jmu/mq0p0693/pseudo_pseudo'
-                spec_pion:    '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/spectrum/ml0p0126_ms0p0693/pion/corr'
-                spec_kaon:    '/l2464f211b600m0102m0509m635a/wf1p0_m51p2_l58_a51p5_smrw5p0_n75/spectrum/ml0p0126_ms0p0693/kaon/corr'
-                phiqq_pion:
-                phiqq_etas:
-                axial_ll:
-                axial_ls:
-                proton_spin_dn:
-                proton_spin_up:
-                proton_np_spin_dn:
-                proton_np_spin_up:
+gA_fit:
+    ### 0.15 fm ###
+    ## 310 MeV
+    ens: {"tag":"l1648f211b580m013m065m838", "stream":"a"}
+    ml: 0.0158 # UT
+    # for bootstrap
+    nbs: 1000
+    mbs: 1960
+    # number of states fit to
+    nstates: [3,5]
+
+flags:
+    # fitter flags (True/False)
+    plot_data: False # plot correlator
+    fit_twopt: False # write/update applies
+    stability_plot: True # tmin/tmax stability plots
+    tabulate: True # tabulate boot0 results
+
+############################
+##### a = 0.09fm ###########
+############################
+
+# 310 MeV
+#l3296f211b630m0074m037m440:
+
+############################
+##### a = 0.12fm ###########
+############################
+
+# 310 MeV
+#l2464f211b600m0102m0509m635:
+
+# 220 MeV
+#l4064f211b600m00507m0507m628:
+
+############################
+##### a = 0.15fm ###########
+############################
+# 310 MeV
+l1648f211b580m013m065m838:
+    proton:
+        0.0158:
             priors:
-                etas:
-                    mres: [0.00047, 0.0003]
-                    A0: [0.0, 1.0]
-                    E0: [0.0, 1.0]
-                pion:
-                    mres: [0.00077, 0.0005]
-                    A0: [0.0021, 0.0021] # Z0_p*Z0_s for tuneqq.py
-                    F0: [-0.03, 0.01] # amplitude for axial_ll
-                    Z0_s: [0.02, 0.01]
-                    Z0_p: [0.2, 0.1]
-                    E0: [0.190, 0.1] #[0.237, 0.02]
-                    F1: [0.0, 1.0] # amplitude for axial_ll
-                    Z1_s: [0.0, 1.0]
-                    Z1_p: [0.0, 1.0]
-                    E1: [0.1, 0.02]
-                kaon:
-                    F0: [-0.035, 0.01] # amplitude for axial_ll
-                    Z0_s: [0.016, 0.01]
-                    Z0_p: [0.15, 0.1]
-                    E0: [0.33, 0.2]
-                    F1: [0.0, 1.0] # amplitude for axial_ll
-                    Z1_s: [0.0, 1.0]
-                    Z1_p: [0.0, 1.0]
-                    E1: [0.1, 0.02]
-            trange:
-                mres:
-                    tmin: [2, 2]
-                    tmax: [61, 61]
-                twopt: # for pion / kaon only
-                    tmin: [4,10]
-                    tmax: [30,30]
-                decay_axial:
-                    tmin: [2,3]
-                    tmax: [23,23]
-                proton:
-                    tmin: [2,2]
-                    tmax: [14, 14]
+                1: {"E0": [0.83, 0.04], "G1_Z0s":[4E-4, 2E-4], "G1_Z0p":[0.01, 0.005], "G2_Z0s": [8E-5, 4E-5], "G2_Z0p": [0.003, 0.0015], "G3_Z0s": [-1.0E-4, 5E-5], "G3_Z0p": [-0.004, 0.002]}
+                2: {"E1": [-0.75, 0.5], "G1_Z1s":[0.0, 2E-3], "G1_Z1p":[0.0, 0.05], "G2_Z1s": [0.0, 4E-4], "G2_Z1p": [0.0, 0.015], "G3_Z1s": [0.0, 5E-4], "G3_Z1p": [0.0, 0.02]} # exp(-0.75) is ~621 MeV (two pions)
+                3: {"E2": [-0.75, 0.5], "G1_Z2s":[0.0, 2E-3], "G1_Z2p":[0.0, 0.05], "G2_Z2s": [0.0, 4E-4], "G2_Z2p": [0.0, 0.015], "G3_Z2s": [0.0, 5E-4], "G3_Z2p": [0.0, 0.02]}
+                4: {"E3": [-0.75, 0.5], "G1_Z3s":[0.0, 2E-3], "G1_Z3p":[0.0, 0.05], "G2_Z3s": [0.0, 4E-4], "G2_Z3p": [0.0, 0.015], "G3_Z3s": [0.0, 5E-4], "G3_Z3p": [0.0, 0.02]}
+                5: {"E4": [-0.75, 0.5], "G1_Z4s":[0.0, 2E-3], "G1_Z4p":[0.0, 0.05], "G2_Z4s": [0.0, 4E-4], "G2_Z4p": [0.0, 0.015], "G3_Z4s": [0.0, 5E-4], "G3_Z4p": [0.0, 0.02]}
+                6: {"E5": [-0.75, 0.5], "G1_Z5s":[0.0, 2E-3], "G1_Z5p":[0.0, 0.05], "G2_Z5s": [0.0, 4E-4], "G2_Z5p": [0.0, 0.015], "G3_Z5s": [0.0, 5E-4], "G3_Z5p": [0.0, 0.02]}
+            trange: {"tmin": [4, 4], "tmax": [30, 30]}

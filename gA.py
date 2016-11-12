@@ -23,12 +23,37 @@ def gA_bs(psql,params):
     Nbs = params['gA_fit']['nbs']
     Mbs = params['gA_fit']['mbs']
     nstates = params['gA_fit']['nstates']
+    tau = params['gA_fit']['tau']
     barp = params[tag]['proton'][mq]
+    fhbp = params[tag]['gA'][mq]
     print "fitting for gA mq %s, basak %s, ens %s%s, Nbs %s, Mbs %s" %(str(mq),str(basak),str(tag),str(stream),str(Nbs),str(Mbs))
     # read two point
     SSl = np.array([psql.data('dwhisq_corr_baryon',idx) for idx in [barp['meta_id']['SS'][i] for i in basak]])
     PSl = np.array([psql.data('dwhisq_corr_baryon',idx) for idx in [barp['meta_id']['PS'][i] for i in basak]])
     T = len(SSl[0,0])
+    # read fh correlator
+    fhSSl = np.array([psql.data('dwhisq_fhcorr_baryon',idx) for idx in [fhbp['meta_id']['SS'][i] for i in basak]])
+    fhPSl = np.array([psql.data('dwhisq_fhcorr_baryon',idx) for idx in [fhbp['meta_id']['PS'][i] for i in basak]])
+    # concatenate and make gvars to preserve correlations
+    SS = SSl[0]
+    PS = PSl[0]
+    for i in range(len(SSl)-1): # loop over basak operators
+        SS = np.concatenate((SS,SSl[i+1]),axis=1)
+        PS = np.concatenate((PS,PSl[i+1]),axis=1)
+    fhSS = fhSSl[0]
+    fhPS = fhPSl[0]
+    for i in range(len(fhSSl)-1):
+        fhSS = np.concatenate((fhSS,fhSSl[i+1]),axis=1)
+        fhPS = np.concatenate((fhPS,fhPSl[i+1]),axis=1)
+    boot0 = np.concatenate((SS, PS, fhSS, fhPS), axis=1)
+    # make gvars
+    gvboot0 = c51.make_gvars(boot0)
+    spec = gvboot0[:len(gvboot0)/2]
+    fh = gvboot0[len(gvboot0)/2:]
+    # R(t)
+    Rl = fh/spec
+    # dmeff [R(t+tau) - R(t)] / tau
+    dM = (np.roll(Rl,-tau)-Rl)/float(tau)
     # plot data
     if params['flags']['plot_data']:
         for b in range(len(basak)):
@@ -57,32 +82,144 @@ def gA_bs(psql,params):
             ylim = c51.find_yrange(scaled_ps, xlim[0], xlim[1])
             c51.scatter_plot(np.arange(len(scaled_ps)), scaled_ps, '%s %s ps scaled correlator (divide by Z0_s to get Z0_p)' %(basak[b],str(mq)), xlim = xlim, ylim = ylim)
             plt.show()
-    # concatenate data
-    SS = SSl[0]
-    PS = PSl[0]
-    for i in range(len(SSl)-1):
-        SS = np.concatenate((SS,SSl[i+1]),axis=1)
-        PS = np.concatenate((PS,PSl[i+1]),axis=1)
-    boot0 = np.concatenate((SS, PS), axis=1)
-    # read priors
-    prior = c51.baryon_priors(barp['priors'],basak,nstates)
-    ## read trange
-    trange = barp['trange']
-    ## fit boot0
-    boot0gv = c51.make_gvars(boot0)
-    boot0p = c51.dict_of_tuple_to_gvar(prior)
-    fitfcn = c51.fit_function(T,nstates)
-    boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.twopt_baryon_ss_ps,basak=params['gA_fit']['basak'])
-    print boot0fit['rawoutput'][0]
-
+    if params['flags']['fit_twopt']:
+        # data already concatenated previously
+        # read priors
+        prior = c51.baryon_priors(barp['priors'],basak,nstates)
+        ## read trange
+        trange = barp['trange']
+        ## fit boot0
+        boot0gv = spec
+        boot0p = c51.dict_of_tuple_to_gvar(prior)
+        fitfcn = c51.fit_function(T,nstates)
+        boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.twopt_baryon_ss_ps,basak=params['gA_fit']['basak'])
+        if params['flags']['stability_plot']:
+            c51.stability_plot(boot0fit,'E0','%s' %str(mq))
+            plt.show()
+        if params['flags']['tabulate']:
+            tbl_print = collections.OrderedDict()
+            tbl_print['tmin'] = boot0fit['tmin']
+            tbl_print['tmax'] = boot0fit['tmax']
+            tbl_print['E0'] = [boot0fit['pmean'][t]['E0'] for t in range(len(boot0fit['pmean']))]
+            tbl_print['dE0'] = [boot0fit['psdev'][t]['E0'] for t in range(len(boot0fit['pmean']))]
+            blist = []
+            for b in params['gA_fit']['basak']:
+                blist.append(b[2:])
+                blist.append(b[:2])
+            blist = np.unique(blist)
+            for b in blist:
+                tbl_print['%s_Z0s' %b] = [boot0fit['pmean'][t]['%s_Z0s'%b] for t in range(len(boot0fit['pmean']))]
+                tbl_print['%s_dZ0s' %b] = [boot0fit['psdev'][t]['%s_Z0s' %b] for t in range(len(boot0fit['pmean']))]
+                tbl_print['%s_Z0p' %b] = [boot0fit['pmean'][t]['%s_Z0p' %b] for t in range(len(boot0fit['pmean']))]
+                tbl_print['%s_dZ0p' %b] = [boot0fit['psdev'][t]['%s_Z0p' %b] for t in range(len(boot0fit['pmean']))]
+            tbl_print['chi2/dof'] = np.array(boot0fit['chi2'])/np.array(boot0fit['dof'])
+            tbl_print['logGBF'] = boot0fit['logGBF']
+            print tabulate(tbl_print, headers='keys')
+        # submit boot0 to db
+        if params['flags']['write']:
+            corr_lst = np.array([[barp['meta_id']['SS'][i] for i in params['gA_fit']['basak']],[barp['meta_id']['PS'][i] for i in params['gA_fit']['basak']]]).flatten()
+            fit_id = c51.select_fitid('baryon',nstates=nstates,basak=params['gA_fit']['basak'])
+            for t in range(len(boot0fit['tmin'])):
+                init_id = psql.initid(boot0fit['p0'][t])
+                prior_id = psql.priorid(boot0fit['prior'][t])
+                tmin = boot0fit['tmin'][t]
+                tmax = boot0fit['tmax'][t]
+                result = c51.make_result(boot0fit,t)
+                psql.submit_boot0('proton',corr_lst,fit_id,tmin,tmax,init_id,prior_id,result,params['flags']['update'])
+    # plot fh correlator
+    if params['flags']['plot_fhdata']:
+        for b in range(len(basak)):
+            # raw correlator dC_lambda/dlambda
+            fhSS = fhSSl[b]
+            fhPS = fhPSl[b]
+            c51.scatter_plot(np.arange(len(fhSS[0])), c51.make_gvars(fhSS), '%s %s fh ss' %(basak[b],str(mq)))
+            c51.scatter_plot(np.arange(len(fhPS[0])), c51.make_gvars(fhPS), '%s %s fh ps' %(basak[b],str(mq)))
+            plt.show()
+            # R(t)
+            RSS = (Rl[:len(Rl)/2])[b*len(Rl)/(2*len(basak)):(b+1)*len(Rl)/(2*len(basak))]
+            RPS = (Rl[len(Rl)/2:])[b*len(Rl)/(2*len(basak)):(b+1)*len(Rl)/(2*len(basak))]
+            c51.scatter_plot(np.arange(len(RSS)), RSS, '%s %s R(t) ss' %(basak[b],str(mq)))
+            c51.scatter_plot(np.arange(len(RPS)), RPS, '%s %s R(t) ps' %(basak[b],str(mq)))
+            plt.show()
+            # dmeff R(t+tau) - R(t)
+            dMSS = (dM[:len(dM)/2])[b*len(dM)/(2*len(basak)):(b+1)*len(dM)/(2*len(basak))]
+            dMPS = (dM[len(dM)/2:])[b*len(dM)/(2*len(basak)):(b+1)*len(dM)/(2*len(basak))]
+            c51.scatter_plot(np.arange(len(dMSS)), dMSS, '%s %s [R(t+%s)-R(t)]/%s ss' %(basak[b],str(mq),str(tau),str(tau)))
+            c51.scatter_plot(np.arange(len(dMPS)), dMPS, '%s %s [R(t+%s)-R(t)]/%s ps' %(basak[b],str(mq),str(tau),str(tau)))
+            plt.show()
+    # fit fh correlator
+    if params['flags']['fit_gA']:
+        # data concatenated previously
+        # read priors
+        prior = c51.fhbaryon_priors(barp['priors'],fhbp['priors'],basak,nstates)
+        print prior
+        # read trange
+        trange = barp['trange']
+        fhtrange = fhbp['trange']
+        # fit boot0
+        boot0gv = np.concatenate((spec, dM))
+        boot0p = c51.dict_of_tuple_to_gvar(prior)
+        fitfcn = c51.fit_function(T,nstates,tau)
+        boot0fit = c51.fitscript_v3(trange,fhtrange,T,boot0gv,boot0p,fitfcn.baryon_fhbaryon_ss_ps,basak=params['gA_fit']['basak'])
+        #print {k: boot0fit['p0'][0][k] for k in [bk for n in range(nstates) for bk in barp['priors'][n+1].keys()]}
+        if params['flags']['stability_plot']:
+            c51.stability_plot(boot0fit,'E0','%s' %str(mq))
+            c51.stability_plot(boot0fit,'gA00','%s' %str(mq))
+            plt.show()
+        if params['flags']['tabulate']:
+            tbl_print = collections.OrderedDict()
+            tbl_print['tmin'] = boot0fit['tmin']
+            tbl_print['tmax'] = boot0fit['tmax']
+            tbl_print['fhtmin'] = boot0fit['fhtmin']
+            tbl_print['fhtmax'] = boot0fit['fhtmax']
+            #tbl_print['E0'] = [boot0fit['pmean'][t]['E0'] for t in range(len(boot0fit['pmean']))]
+            #tbl_print['dE0'] = [boot0fit['psdev'][t]['E0'] for t in range(len(boot0fit['pmean']))]
+            tbl_print['gA00'] = [boot0fit['pmean'][t]['gA00'] for t in range(len(boot0fit['pmean']))]
+            tbl_print['dgA00'] = [boot0fit['psdev'][t]['gA00'] for t in range(len(boot0fit['pmean']))]
+            #blist = []
+            #for b in params['gA_fit']['basak']:
+            #    blist.append(b[2:])
+            #    blist.append(b[:2])
+            #blist = np.unique(blist)
+            #for b in blist:
+            #    tbl_print['%s_Z0s' %b] = [boot0fit['pmean'][t]['%s_Z0s'%b] for t in range(len(boot0fit['pmean']))]
+            #    tbl_print['%s_dZ0s' %b] = [boot0fit['psdev'][t]['%s_Z0s' %b] for t in range(len(boot0fit['pmean']))]
+            #    tbl_print['%s_Z0p' %b] = [boot0fit['pmean'][t]['%s_Z0p' %b] for t in range(len(boot0fit['pmean']))]
+            #    tbl_print['%s_dZ0p' %b] = [boot0fit['psdev'][t]['%s_Z0p' %b] for t in range(len(boot0fit['pmean']))]
+            tbl_print['chi2/dof'] = np.array(boot0fit['chi2'])/np.array(boot0fit['dof'])
+            tbl_print['chi2'] = boot0fit['chi2']
+            tbl_print['chi2f'] = boot0fit['chi2f']
+            tbl_print['logGBF'] = boot0fit['logGBF']
+            print tabulate(tbl_print, headers='keys')
+        # submit boot0 to db
+        if params['flags']['write']:
+            corr_lst = np.array([[fhbp['meta_id']['SS'][i] for i in params['gA_fit']['basak']],[fhbp['meta_id']['PS'][i] for i in params['gA_fit']['basak']]]).flatten()
+            fit_id = c51.select_fitid('fhbaryon',nstates=nstates,tau=params['gA_fit']['tau'])
+            for t in range(len(boot0fit['tmin'])):
+                baryon_corr_lst = np.array([[barp['meta_id']['SS'][i] for i in params['gA_fit']['basak']],[barp['meta_id']['PS'][i] for i in params['gA_fit']['basak']]]).flatten()
+                baryon_fit_id = c51.select_fitid('baryon',nstates=nstates,basak=params['gA_fit']['basak'])
+                baryon_tmin = trange['tmin'][0]
+                baryon_tmax = trange['tmax'][0]
+                baryon_p0 = {k: boot0fit['p0'][0][k] for k in [bk for n in range(nstates) for bk in barp['priors'][n+1].keys()]}
+                baryon_init_id = psql.initid(baryon_p0)
+                baryon_prior_id = psql.priorid(c51.dict_of_tuple_to_gvar(c51.baryon_priors(barp['priors'],basak,nstates)))
+                baryon_id = psql.select_boot0("proton", baryon_corr_lst, baryon_fit_id, baryon_tmin, baryon_tmax, baryon_init_id, baryon_prior_id)
+                init_id = psql.initid(boot0fit['p0'][t])
+                prior_id = psql.priorid(boot0fit['prior'][t])
+                tmin = boot0fit['fhtmin'][t]
+                tmax = boot0fit['fhtmax'][t]
+                result = c51.make_result(boot0fit,t)
+                print tmin, tmax
+                psql.submit_fhboot0('fhproton',corr_lst,baryon_id,fit_id,tmin,tmax,init_id,prior_id,result,params['flags']['update'])
+        if params['flags']['csvformat']:
+            for t in range(len(boot0fit['fhtmin'])):
+                print nstates,',',boot0fit['tmin'][t],',',boot0fit['tmax'][t],',',boot0fit['fhtmin'][t],',',boot0fit['fhtmax'][t],',',boot0fit['pmean'][t]['gA00'],',',boot0fit['psdev'][t]['gA00'],',',(np.array(boot0fit['chi2'])/np.array(boot0fit['dof']))[t],',',(np.array(boot0fit['chi2'])/np.array(boot0fit['chi2f']))[t],',',boot0fit['logGBF'][t]
 if __name__=='__main__':
     # read master
     user_flag = c51.user_list()
     f = open('./fhprotonmaster.yml.%s' %(user_flag),'r')
     params = yaml.load(f)
     f.close()
-    # yaml entires
-    fitmeta = params['gA_fit']
     # log in sql
     psqlpwd = pwd.passwd()
     psql = sql.pysql('cchang5','cchang5',psqlpwd)
