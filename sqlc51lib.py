@@ -127,11 +127,25 @@ def baryon_initpriors(priors,basak,nstates):
                 p[k] = priors[n+1][k][0]
     return p
 
-def fhbaryon_priors(priors,fhpriors,basak,nstates):
-    p = baryon_priors(priors,basak,nstates)
-    for n in range(nstates):
+def fhbaryon_priors(priors,fhpriors,basak,nstates,fhstates):
+    if fhstates < nstates:
+        p = baryon_priors(priors,basak,nstates)
+    else:
+        p = baryon_priors(priors,basak,fhstates)
+    for n in range(fhstates):
         for k in fhpriors[n+1].keys():
             p[k] = fhpriors[n+1][k]
+    # contact priors
+    for b in basak:
+        bsrc = b[:2]
+        bsnk = b[2:]
+        for n in range(fhstates):
+            for k in fhpriors['c%s' %n].keys():
+                prior_bsrc = k.split('_')[1]
+                prior_bsnk = k.split('_')[0]
+                if bsrc == prior_bsrc and bsnk == prior_bsnk:
+                    p[k] = fhpriors['c%s' %n][k]
+                else: pass
     return p
 
 ### READ DATASET ###
@@ -200,7 +214,13 @@ class effective_plots:
     def scaled_correlator(self, twopt, E0, phase=1.0):
         scaled2pt = []
         for t in range(len(twopt)):
-            scaled2pt.append(twopt[t]*2.*E0/(np.exp(-E0*t)+phase*np.exp(-E0*(self.T-t))))
+            scaled2pt.append(twopt[t]*2.*E0/(np.exp(-E0*t)))
+        scaled2pt = np.array(scaled2pt)
+        return scaled2pt
+    def scaled_correlator_v2(self, twopt, E0, phase=1.0):
+        scaled2pt = []
+        for t in range(len(twopt)):
+            scaled2pt.append(twopt[t]/(np.exp(-E0*t)))
         scaled2pt = np.array(scaled2pt)
         return scaled2pt
 
@@ -258,6 +278,7 @@ def fitscript_v2(trange,T,data,priors,fcn,init=None,basak=None):
     tmaxtbl = []
     chi2 = []
     dof = []
+    Q = []
     lgbftbl = []
     rawoutput = []
     for tmin in range(trange['tmin'][0], trange['tmin'][1]+1):
@@ -278,6 +299,7 @@ def fitscript_v2(trange,T,data,priors,fcn,init=None,basak=None):
             chi2.append(fit.chi2)
             dof.append(fit.dof)
             lgbftbl.append(fit.logGBF)
+            Q.append(fit.Q)
             rawoutput.append(fit)
     #fcnname = str(fcn.__name__)
     #fitline = fcn(x,fit.p)
@@ -299,6 +321,7 @@ def fitscript_v2(trange,T,data,priors,fcn,init=None,basak=None):
     fittbl['chi2'] = chi2
     fittbl['dof'] = dof
     fittbl['logGBF'] = lgbftbl
+    fittbl['Q'] = Q
     fittbl['rawoutput'] = rawoutput
     return fittbl
 
@@ -318,6 +341,7 @@ def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None):
     chi2f = []
     dof = []
     lgbftbl = []
+    Q = []
     rawoutput = []
     for tmin in range(trange['tmin'][0], trange['tmin'][1]+1):
         for tmax in range(trange['tmax'][0], trange['tmax'][1]+1):
@@ -331,7 +355,7 @@ def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None):
                         x = {'indep': x, 'basak': basak}
                     else: pass
                     fit = lsqfit.nonlinear_fit(data=(x,y),prior=priors,fcn=fcn,p0=init,maxit=1000000) #,svdcut=1E-5)
-                    print fhtmin, fhtmax, fit.p['gA00'], fit.chi2/fit.dof
+                    print fhtmin, fhtmax, fit.p['gA00'].mean, fit.p['gA00'].sdev, fit.p['E0'].mean, fit.p['E0'].sdev, fit.chi2/fit.dof, fit.Q, fit.logGBF
                     pmean.append(fit.pmean)
                     psdev.append(fit.psdev)
                     post.append(fit.p)
@@ -344,6 +368,7 @@ def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None):
                     chi2.append(fit.chi2)
                     dof.append(fit.dof)
                     lgbftbl.append(fit.logGBF)
+                    Q.append(fit.Q)
                     rawoutput.append(fit)
                     chi2f.append(chi2freq(fit.chi2,fit.prior,fit.p))
     ## print correlation matrix of data
@@ -380,6 +405,7 @@ def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None):
     fittbl['chi2f'] = chi2f
     fittbl['dof'] = dof
     fittbl['logGBF'] = lgbftbl
+    fittbl['Q'] = Q
     fittbl['rawoutput'] = rawoutput
     return fittbl
 
@@ -402,10 +428,92 @@ def tabulate_result(fit_proc, parameters):
 
 #FIT FUNCTIONS
 class fit_function():
-    def __init__(self, T, nstates=1, tau=1):
+    def __init__(self, T, nstates=1, fhstates=1, tau=1):
         self.T = T
         self.nstates = nstates
+        self.fhstates = fhstates
         self.tau = tau
+    # rederived FH fit function and 2pt ########################################################
+    # Z = Z/sqrt(2E0)   G = G/2E0
+    def dwhisq_twopt(self,t,p,b,snk,src):
+        bsrc = b[:2]
+        bsnk = b[2:]
+        C = 0
+        for n in range(self.nstates):
+            En = self.E(p,n)
+            Zsrc = p['%s_Z%s%s' %(bsrc,n,src)]
+            Zsnk = p['%s_Z%s%s' %(bsnk,n,snk)]
+            C += Zsnk*Zsrc*np.exp(-En*t)
+        return C
+    def dwhisq_fh(self,t,p,b,snk,src):
+        bsrc = b[:2]
+        bsnk = b[2:]
+        M = 0
+        for n in range(self.fhstates):
+            for m in range(self.fhstates):
+                En = self.E(p,n)
+                Em = self.E(p,m)
+                Gmn = self.G(p,b,m,n)
+                #Gmn = self.asG(p,b,m,n)
+                Zn = p['%s_Z%s%s' %(bsrc,n,src)]
+                Zm = p['%s_Z%s%s' %(bsnk,m,snk)]
+                if n == m:
+                    M += Zm*Gmn*Zn*(t-1)*np.exp(-En*t)
+                else:
+                    Dnm = En-Em
+                    M += Zm*Gmn*Zn*(np.exp(-Dnm)*np.exp(-Em*t)-np.exp(-En*t))/(1-np.exp(-Dnm))
+                    #M += Zm*Gmn*Zn*(np.exp(-0.5*Dnm)*np.exp(-Em*t)-np.exp(0.5*Dnm)*np.exp(-En*t)) #/(np.exp(0.5*Dnm)-np.exp(-0.5*Dnm))
+        # Dn parameterizes contact terms + current outside of src snk
+        for n in range(self.fhstates):
+            Dn = p['%s_%s_D%s%s%s' %(bsnk,bsrc,n,snk,src)]
+            En = self.E(p,n)
+            M += Dn*np.exp(-En*t)
+        return M
+    def dwhisq_twopt_ss_ps(self,t,p):
+        ssl = []
+        psl = []
+        for b in t['basak']:
+            ssl.append(self.dwhisq_twopt(t['indep'],p,b,'s','s'))
+            psl.append(self.dwhisq_twopt(t['indep'],p,b,'p','s'))
+        ss = ssl[0]
+        ps = psl[0]
+        for i in range(len(ssl)-1):
+            ss = np.concatenate((ss,ssl[i+1]))
+            ps = np.concatenate((ps,psl[i+1]))
+        fitfcn = np.concatenate((ss,ps))
+        return fitfcn
+    def dwhisq_fh_ss_ps(self,t,p):
+        x2 = t['indep'][0]
+        fhx = t['indep'][1]
+        ssl = []
+        psl = []
+        for b in t['basak']:
+            ssl.append(self.dwhisq_twopt(x2,p,b,'s','s'))
+            psl.append(self.dwhisq_twopt(x2,p,b,'p','s'))
+        ss = ssl[0]
+        ps = psl[0]
+        for i in range(len(ssl)-1):
+            ss = np.concatenate((ss,ssl[i+1]))
+            ps = np.concatenate((ps,psl[i+1]))
+        fhssl = []
+        fhpsl = []
+        for b in t['basak']:
+            fhssl.append(self.dwhisq_fh(fhx,p,b,'s','s'))
+            fhpsl.append(self.dwhisq_fh(fhx,p,b,'p','s'))
+        fhss = fhssl[0]
+        fhps = fhpsl[0]
+        for i in range(1,len(fhssl)):
+            fhss = np.concatenate((fhss,fhssl[i]))
+            fhps = np.concatenate((fhps,fhpsl[i]))
+        fitfcn = np.concatenate((ss,ps,fhss,fhps))
+        return fitfcn
+    def asG(self,p,b,n,m):
+        if n >= m:
+            g = p['gA%s%s' %(str(n),str(m))]
+        else:
+            g = -p['gA%s%s' %(str(m),str(n))]
+        return g
+    ##########################################################################################
     def B(self,p,b,snk,src,n,m):
         bsrc = b[:2]
         bsnk = b[2:]

@@ -267,6 +267,9 @@ if __name__=='__main__':
         #corrkno = read_prop(filename,datapath)[:,4,1]
         corrkno = read_prop(filename,datapath)[:,2,1]
         #corrkno = read_prop(filename,datapath)[:,3,0]
+        filename = 'l1648f211b580m013m065m838a_200.vulcan.h5'
+        datapath = '/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton_np/spin_%s/x1y13z4t19' %knospin
+        corrkno2 = read_prop(filename,datapath)[:,2,1]
         # read TK
         #datapath = '/two_pt/%s' %tkname
         # with t-shift and smearing
@@ -279,7 +282,8 @@ if __name__=='__main__':
         print "two point"
         #print corr/corrkno
         #print corr/corrtk.real
-        print corrtk.real/corrkno
+        #print corrtk.real/corrkno
+        print corrkno2/corrkno
     if threeptU:
         # make three point
         fhcorr = []
@@ -296,6 +300,9 @@ if __name__=='__main__':
         #fhcorrkno = read_prop(filename,datapath)[:,4,1]
         fhcorrkno = read_prop(filename,datapath)[:,2,1]
         #fhcorrkno = read_prop(filename,datapath)[:,3,0]
+        filename = 'l1648f211b580m013m065m838a_200.vulcan.h5'
+        datapath = '/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton_np/A3_UU_spin_%s/x1y13z4t19' %knospin
+        fhcorrkno2 = read_prop(filename,datapath)[:,2,1]
         # read TK
         filename = 'test.16c48_x1y13z4t19.h5'
         #filename = 'test.16c48_x1y13z4t19.manualgeom.h5'
@@ -312,9 +319,10 @@ if __name__=='__main__':
         print "FU"
         #print fhcorr/fhcorrkno
         #print fhcorr/fhcorrtk.imag
-        print fhcorrtk.imag/fhcorrkno
+        #print fhcorrtk.imag/fhcorrkno
         #print fhcorrtk2/fhcorrtk
         #print fhcorrtk3/fhcorrtk
+        print fhcorrkno2/fhcorrkno
     if threeptD:
         # make three point
         fhcorr = []
@@ -331,6 +339,9 @@ if __name__=='__main__':
         #fhcorrkno = read_prop(filename,datapath)[:,4,1]
         fhcorrkno = read_prop(filename,datapath)[:,2,1]
         #fhcorrkno = read_prop(filename,datapath)[:,3,0]
+        filename = 'l1648f211b580m013m065m838a_200.vulcan.h5'
+        datapath = '/wf1p0_m51p3_l512_a52p0_smrw4p5_n60/spectrum/ml0p0158_ms0p0902/proton_np/A3_DD_spin_%s/x1y13z4t19' %knospin
+        fhcorrkno2 = read_prop(filename,datapath)[:,2,1]
         # read TK
         filename = 'test.16c48_x1y13z4t19.h5'
         #filename = 'test.16c48_x1y13z4t19.manualgeom.h5'
@@ -341,4 +352,5 @@ if __name__=='__main__':
         print "FD"
         #print fhcorr/fhcorrkno
         #print fhcorr/fhcorrtk.imag
-        print fhcorrtk.imag/fhcorrkno
+        #print fhcorrtk.imag/fhcorrkno
+        print fhcorrkno2/fhcorrkno
