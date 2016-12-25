@@ -107,7 +107,7 @@ def read_decay_bs(psql,params,meson):
     elif meson == 'etas':
         mq1 = params['decay_ward_fit']['ms']
         mq2 = mq1
-    print 'readon meson two point', mq1, mq2
+    print 'reading meson two point', mq1, mq2
     tag = params['decay_ward_fit']['ens']['tag']
     stream = params['decay_ward_fit']['ens']['stream']
     mesp = params[tag][meson]['%s_%s' %(str(mq1),str(mq2))]
@@ -149,9 +149,9 @@ def fit_decay_bs(psql,params,meson, gv_SS, gv_PS):
         c51.scatter_plot(np.arange(len(meff_ps)), meff_ps, '%s_%s ps effective mass' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
         plt.show()
         # scaled correlator
-        E0 = mesp['priors']['1']['E0'][0]
-        scaled_ss = eff.scaled_correlator(gv_SS, E0, phase=1.0)
-        scaled_ps = eff.scaled_correlator(gv_PS, E0, phase=1.0)
+        E0 = mesp['priors'][1]['E0'][0]
+        scaled_ss = np.sqrt(eff.scaled_correlator(gv_SS, E0, phase=1.0))
+        scaled_ps = eff.scaled_correlator(gv_PS, E0, phase=1.0)/scaled_ss
         ylim = c51.find_yrange(scaled_ss, xlim[0], xlim[1])
         c51.scatter_plot(np.arange(len(scaled_ss)), scaled_ss, '%s_%s ss scaled correlator (take sqrt to get Z0_s)' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
         ylim = c51.find_yrange(scaled_ps, xlim[0], xlim[1])
@@ -241,8 +241,7 @@ def concatgv(corr1, corr2):
 
 if __name__=='__main__':
     # read master
-    user_flag = c51.user_list()
-    f = open('./sqlmaster.yml.%s' %(user_flag),'r')
+    f = open('./decay.yml','r')
     params = yaml.load(f)
     f.close()
     # yaml entires
@@ -254,15 +253,15 @@ if __name__=='__main__':
     # ml mres
     mp, pp = read_mres_bs(psql,params,fitmeta['ml'])
     gv_mp, gv_pp = concatgv(mp, pp)
-    #res = fit_mres_bs(psql,params,fitmeta['ml'],gv_mp,gv_pp)
-    #print res['mres_fit']
+    res = fit_mres_bs(psql,params,fitmeta['ml'],gv_mp,gv_pp)
+    print res['mres_fit']
     #buffdict = gv.BufferDict()
     #buffdict = res['mres_fit'].p
     # ms mres
     mp, pp = read_mres_bs(psql,params,fitmeta['ms'])
     gv_mp, gv_pp = concatgv(mp, pp)
-    #res = fit_mres_bs(psql,params,fitmeta['ms'],gv_mp,gv_pp)
-    #print res['mres_fit']
+    res = fit_mres_bs(psql,params,fitmeta['ms'],gv_mp,gv_pp)
+    print res['mres_fit']
 
     ## bootstrap decay constant
     # fit pion

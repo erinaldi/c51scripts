@@ -104,17 +104,13 @@ def fit_proton(psql,params,gvboot0):
             ylim = c51.find_yrange(scaled_ps, xlim[0], xlim[1])
             c51.scatter_plot(np.arange(len(scaled_ps)), scaled_ps, '%s %s ps scaled correlator (Z0_p)' %(basak[b],str(mq)), xlim = xlim, ylim = ylim)
             #print stuff
-            #print 'scaled_ss'
-            #f_scaled = open('/Users/cchang5/Documents/Papers/FH/c51_p1/paper/figures/scaled_ss.csv', 'w+')
-            #string = 't_scaled, scaled_corr, +-\n'
+            #f_scaled = open('/Users/cchang5/Documents/Papers/FH/c51_p1/paper/figures/scaled_corr.csv', 'w+')
+            #string = 't_scaled, scaled_ss, +-, scaled_ps, +-\n'
             #for t in range(len(scaled_ss)):
-            #    string += '%s, %s, %s\n' %(str(t), str(scaled_ss[t].mean), str(scaled_ss[t].sdev))
+            #    string += '%s, %s, %s, %s, %s\n' %(t, scaled_ss[t].mean, scaled_ss[t].sdev, scaled_ps[t].mean, scaled_ps[t].sdev)
             #f_scaled.write(string)
             #f_scaled.flush()
             #f_scaled.close()
-            #print 'scaled_ps'
-            #for t in range(len(meff_ps)):
-            #    print t, scaled_ps[t].mean, scaled_ps[t].sdev
             plt.show()
     if params['flags']['fit_twopt']:
         # data already concatenated previously
@@ -128,6 +124,38 @@ def fit_proton(psql,params,gvboot0):
         fitfcn = c51.fit_function(T,nstates)
         boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.dwhisq_twopt_ss_ps,basak=params['gA_fit']['basak'])
         print boot0fit['rawoutput'][0]
+        if params['flags']['fitline_plot']:
+            p = boot0fit['rawoutput'][0].p
+            t = np.linspace(0, 30, 1000)
+            b = params['gA_fit']['basak'][0]
+            # output fit curve
+            ss = fitfcn.dwhisq_twopt(t,p,b,'s','s')
+            ps = fitfcn.dwhisq_twopt(t,p,b,'p','s')
+            scaled_ss = np.sqrt(ss*np.exp(p['E0']*t))
+            scaled_ps = ps*np.exp(p['E0']*t)/scaled_ss
+            meffss = np.log(ss/np.roll(ss,-1))/t[1]
+            meffps = np.log(ps/np.roll(ps,-1))/t[1]
+            f_plot = open('./fh_fitline/%s_twopt.csv' %(tag), 'w+')
+            string = 't, css, +-, cps, +-\n'
+            for i in range(len(t)):
+                string += '%s, %s, %s, %s, %s\n' %(t[i], meffss[i].mean, meffss[i].sdev, meffps[i].mean, meffps[i].sdev)
+            f_plot.write(string)
+            f_plot.flush()
+            f_plot.close()
+            #f_plot = open('./fh_fitline/%s_scaled2pt.csv' %(tag), 'w+')
+            # data scaled two point: propagate E0 error
+            #SSl = spec[:len(spec)/2].reshape((len(basak),T))[0]
+            #PSl = spec[len(spec)/2:].reshape((len(basak),T))[0]
+            #t = np.linspace(0,T,T+1)
+            #scaled_ss = np.sqrt(SSl*np.exp(p['E0']*t))
+            #scaled_ps = PSl*np.exp(p['E0']*t)/scaled_ss
+            #string = 't, zss, +-, zps, +-\n'
+            #for i in range(len(t)):
+            #    string += '%s, %s, %s, %s, %s\n' %(t[i], scaled_ss[i].mean, scaled_ss[i].sdev, scaled_ps[i].mean, scaled_ps[i].sdev)
+            #f_plot = open('/Users/cchang5/Documents/Papers/FH/c51_p1/paper/figures/scaled_corr.csv', 'w+')
+            #f_plot.write(string)
+            #f_plot.flush()
+            #f_plot.close()
         if params['flags']['stability_plot']:
             c51.stability_plot(boot0fit,'E0','%s' %str(mq))
             plt.show()
@@ -152,9 +180,9 @@ def fit_proton(psql,params,gvboot0):
             tbl_print['logGBF'] = boot0fit['logGBF']
             tbl_print['Q'] = boot0fit['Q']
             print tabulate(tbl_print, headers='keys')
-            print "tmax, E0, +-, chi2dof, Q, logGBF"
+            print "tmin, E0%s, +-, chi2dof%s, Q%s, logGBF%s" %(nstates, nstates, nstates, nstates)
             for i in range(len(boot0fit['tmin'])):
-                print '%s, %s, %s, %s, %s, %s' %(str(boot0fit['tmax'][i]), str(boot0fit['pmean'][i]['E0']), str(boot0fit['psdev'][i]['E0']), boot0fit['chi2'][i]/boot0fit['dof'][i], boot0fit['Q'][i], boot0fit['logGBF'][i])
+                print '%s, %s, %s, %s, %s, %s' %(str(boot0fit['tmin'][i]), str(boot0fit['pmean'][i]['E0']), str(boot0fit['psdev'][i]['E0']), boot0fit['chi2'][i]/boot0fit['dof'][i], boot0fit['Q'][i], boot0fit['logGBF'][i])
         # submit boot0 to db
         if params['flags']['write']:
             corr_lst = np.array([[barp['meta_id']['SS'][i] for i in params['gA_fit']['basak']],[barp['meta_id']['PS'][i] for i in params['gA_fit']['basak']]]).flatten()
@@ -182,16 +210,14 @@ def fit_gA(psql,params,gvboot0):
     tau = params['gA_fit']['tau']
     barp = params[tag]['proton'][mq]
     fhbp = params[tag]['gA'][mq]
-    print "nstates: %s" %nstates
-    print "fhstates: %s" %fhstates
+    #print "nstates: %s" %nstates
+    #print "fhstates: %s" %fhstates
     # make gvars
     spec = gvboot0[:len(gvboot0)/2]
     fh = gvboot0[len(gvboot0)/2:]
     T = len(fh)/(2*len(basak))
     # R(t)
     Rl = fh/spec
-    # dmeff [R(t+tau) - R(t)] / tau
-    #dM = Rl
     dM = (np.roll(Rl,-tau)-Rl)/float(tau) #This is needed to plot gA correctly in the effective plots, but will give wrong data to fit with.
     # plot fh correlator
     if params['flags']['plot_fhdata']:
@@ -229,23 +255,91 @@ def fit_gA(psql,params,gvboot0):
         # data concatenated previously
         # read priors
         prior = c51.fhbaryon_priors(barp['priors'],fhbp['priors'],basak,nstates,fhstates)
-        print prior
+        # read init
+        try:
+            #print "found init file"
+            f_init = open('./fh_posterior/%s.yml' %(tag), 'r')
+            init = yaml.load(f_init)
+            f_init.close()
+        except:
+            init = None
+        #print prior
         # read trange
         trange = barp['trange']
         fhtrange = fhbp['trange']
         # fit boot0
         boot0gv = gvboot0 #np.concatenate((spec, fh))
+        #boot0gv = np.concatenate((spec,dM))
         boot0p = c51.dict_of_tuple_to_gvar(prior)
         fitfcn = c51.fit_function(T,nstates,fhstates,tau)
-        boot0fit = c51.fitscript_v3(trange,fhtrange,T,boot0gv,boot0p,fitfcn.dwhisq_fh_ss_ps,basak=params['gA_fit']['basak'])
+        boot0fit = c51.fitscript_v3(trange,fhtrange,T,boot0gv,boot0p,fitfcn.dwhisq_fh_ss_ps,basak=params['gA_fit']['basak'],init=init)
+        #boot0fit = c51.fitscript_v3(trange,fhtrange,T,boot0gv,boot0p,fitfcn.dwhisq_dm_ss_ps,basak=params['gA_fit']['basak'],init=init)
         print boot0fit['rawoutput'][0]
-        #print {k: boot0fit['p0'][0][k] for k in [bk for n in range(nstates) for bk in barp['priors'][n+1].keys()]}
-        if False: # plot R(t+1) - R(t)
-            posterior = boot0fit['post'][0]
-            x = np.arange(20)
-            ssline, psline = fitfcn.baryon_rt_fitline(x,posterior)
-            for i in range(len(ssline)):
-                print x[i],',',ssline[i].mean,',',ssline[i].sdev,',',psline[i].mean,',',psline[i].sdev
+        if params['flags']['fitline_plot']:
+            p = boot0fit['rawoutput'][0].p
+            t = np.linspace(0, 30, 1000)
+            b = params['gA_fit']['basak'][0]
+            # output fit curve
+            ss = fitfcn.dwhisq_twopt(t,p,b,'s','s')
+            ps = fitfcn.dwhisq_twopt(t,p,b,'p','s')
+            fhss = fitfcn.dwhisq_fh(t,p,b,'s','s')
+            fhps = fitfcn.dwhisq_fh(t,p,b,'p','s')
+            rss = fhss/ss
+            rps = fhps/ps
+            yss = (np.roll(rss,-1)-rss)/t[1]
+            yps = (np.roll(rps,-1)-rps)/t[1]
+            f_plot = open('./fh_fitline/%s.csv' %(tag), 'w+')
+            #f_plot = open('./fh_fitline/%s_fh.csv' %(tag), 'w+')
+            string = 't, yss, +-, yps, +-\n'
+            for i in range(len(t)):
+                string += '%s, %s, %s, %s, %s\n' %(t[i], yss[i].mean, yss[i].sdev, yps[i].mean, yps[i].sdev)
+                #string += '%s, %s, %s, %s, %s\n' %(t[i], fhss[i].mean, fhss[i].sdev, fhps[i].mean, fhps[i].sdev)
+            f_plot.write(string)
+            f_plot.flush()
+            f_plot.close()
+            meffss = np.log(ss/np.roll(ss,-1))/t[1]
+            meffps = np.log(ps/np.roll(ps,-1))/t[1]
+            f_plot = open('./fh_fitline/%s_twopt.csv' %(tag), 'w+')
+            string = 't, css, +-, cps, +-\n'
+            for i in range(len(t)):
+                string += '%s, %s, %s, %s, %s\n' %(t[i], meffss[i].mean, meffss[i].sdev, meffps[i].mean, meffps[i].sdev)
+            f_plot.write(string)
+            f_plot.flush()
+            f_plot.close()
+            # output data
+            #dMSSl = fh[:len(fh)/2].reshape((len(basak),T))[0]
+            #dMPSl = fh[len(fh)/2:].reshape((len(basak),T))[0]
+            dMSSl = dM[:len(dM)/2].reshape((len(basak),T))[0]
+            dMPSl = dM[len(dM)/2:].reshape((len(basak),T))[0]
+            t = np.linspace(0,30,31)
+            #f_data = open('./fh_fitline/%s_fh_dat.csv' %(tag), 'w+')
+            f_data = open('./fh_fitline/%s_dat.csv' %(tag), 'w+')
+            string = 't_dat, yss_dat, +-, yps_dat, +-\n'
+            for i in range(len(t)):
+                string += '%s, %s, %s, %s, %s\n' %(t[i], dMSSl[i].mean, dMSSl[i].sdev, dMPSl[i].mean, dMPSl[i].sdev)
+            f_data.write(string)
+            f_data.flush()
+            f_data.close()
+            SSl = spec[:len(spec)/2].reshape((len(basak),T))[0]
+            PSl = spec[len(spec)/2:].reshape((len(basak),T))[0]
+            meffSS = np.log(SSl/np.roll(SSl,-1))
+            meffPS = np.log(PSl/np.roll(PSl,-1))
+            f_data = open('./fh_fitline/%s_twopt_dat.csv' %(tag), 'w+')
+            string = 't_dat, ss_dat, +-, ps_dat, +-\n'
+            for i in range(len(t)):
+                string += '%s, %s, %s, %s, %s\n' %(t[i], meffSS[i].mean, meffSS[i].sdev, meffPS[i].mean, meffPS[i].sdev)
+            f_data.write(string)
+            f_data.flush()
+            f_data.close()
+        if params['flags']['boot0_update']:
+            fh_post = boot0fit['rawoutput'][0].pmean
+            fh_dump = dict()
+            for k in fh_post.keys():
+                fh_dump[k] = float(fh_post[k])
+            f_dump = open('./fh_posterior/%s.yml' %(tag), 'w+')
+            yaml.dump(fh_dump, f_dump)
+            f_dump.flush()
+            f_dump.close()
         if params['flags']['stability_plot']:
             c51.stability_plot(boot0fit,'E0','%s' %str(mq))
             c51.stability_plot(boot0fit,'gA00','%s' %str(mq))
@@ -276,7 +370,7 @@ def fit_gA(psql,params,gvboot0):
             tbl_print['logGBF'] = boot0fit['logGBF']
             tbl_print['Q'] = boot0fit['Q']
             print tabulate(tbl_print, headers='keys')
-            print "tmin, E0, +-, gA, +-, chi2dof, Q, logGBF"
+            print "tmin, %sE0%s, +-, %sgA%s, +-, %schi2dof%s, %sQ%s, %slogGBF%s" %(fhstates, nstates, fhstates, nstates, fhstates, nstates, fhstates, nstates, fhstates, nstates)
             for i in range(len(boot0fit['fhtmin'])):
                 print '%s, %s, %s, %s, %s, %s, %s, %s' %(str(boot0fit['fhtmin'][i]), str(boot0fit['pmean'][i]['E0']), str(boot0fit['psdev'][i]['E0']), str(boot0fit['pmean'][i]['gA00']), str(boot0fit['psdev'][i]['gA00']), boot0fit['chi2'][i]/boot0fit['dof'][i], boot0fit['Q'][i], boot0fit['logGBF'][i])
         # submit boot0 to db
@@ -318,4 +412,29 @@ if __name__=='__main__':
     gvboot0 = c51.make_gvars(boot0)
     fit_proton(psql,params,gvboot0)
     res = fit_gA(psql,params,gvboot0)
-    #print res['gA']
+    # bootstrap gA
+    if params['flags']['bootstrap']:
+        glist = []
+        #for sfit in res['gA_fit'].bootstrapped_fit_iter(n=100):
+        #    glist.append(sfit.pmean)
+        #f_bs = open('./fh_bootstrap/%s_lsqfititer.yml' %(params['gA_fit']['ens']['tag']), 'w+')
+        #f_bs.write(glist)
+        #f_bs.flush()
+        #f_bs.close()
+        # asdf
+        #res_dump = dict()
+        #for k in res['gA_fit'].pmean.keys():
+        #    res_dump[k] = float(res['gA_fit'].pmean[k])
+        #f_bs = open('./fh_bootstrap/%s.yml' %(params['gA_fit']['ens']['tag']), 'w+')
+        #yaml.dump({0: res_dump}, f_bs)
+        #for a in range(4000):
+        #    print "nbs: %s" %(a+1)
+        #    bs_iter = gv.bootstrap_iter(gvboot0)
+        #    gvbs = next(bs_iter)
+        #    bsres = fit_gA(psql,params,gvbs)
+        #    res_dump = dict()
+        #    for k in res['gA_fit'].pmean.keys():
+        #        res_dump[k] = float(res['gA_fit'].pmean[k])
+        #    yaml.dump({a+1: res_dump}, f_bs)
+        #f_bs.flush()
+        #f_bs.close()
