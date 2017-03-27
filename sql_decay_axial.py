@@ -63,6 +63,7 @@ def fit_axial(psql,params,dparams,meson,datagv,inherit_prior=None):
         plt.show()
         # scaled correlator
         E0 = axialp['priors'][1]['E0'][0]
+        print E0
         z_s = np.sqrt(eff.scaled_correlator(SS, E0, phase=1.0))
         scaled_ax = eff.scaled_correlator(ax, E0, phase=1.0)/z_s
         ylim = c51.find_yrange(scaled_ax, xlim[0], xlim[1])
@@ -73,14 +74,18 @@ def fit_axial(psql,params,dparams,meson,datagv,inherit_prior=None):
         prior = c51.meson_priors(axialp['priors'],nstates)
         prior = c51.dict_of_tuple_to_gvar(prior)
     else:
-        prior = inherit_prior
+        prior = c51.meson_priors(axialp['priors'],nstates)
+        prior = c51.dict_of_tuple_to_gvar(prior)
+        for k in inherit_prior.keys():
+            prior[k] = inherit_prior[k]
     # read trange
     trange  = axialp['trange']
     dtrange = mesonp['trange']
     # fit
     fitfcn = c51.fit_function(T,params['axial_fit']['nstates'])
     boot0fit = c51.fitscript_v3(dtrange,trange,T,datagv,prior,fitfcn.dwhisq_twopt_axial,axial=True)
-    print boot0fit['rawoutput'][0]
+    #boot0fit = c51.fitscript_v3(dtrange,trange,T,datagv,prior,fitfcn.dwhisq_twopt_osc_axial,axial=True)
+    #print boot0fit['rawoutput'][0]
     if params['flags']['stability_plot']:
         c51.stability_plot(boot0fit,'E0','%s_%s' %(str(mq1),str(mq2)))
         c51.stability_plot(boot0fit,'F0','%s_%s' %(str(mq1),str(mq2)))
@@ -99,6 +104,8 @@ def fit_axial(psql,params,dparams,meson,datagv,inherit_prior=None):
         tbl_print['dZ0_p'] = [boot0fit['psdev'][t]['Z0_p'] for t in range(len(boot0fit['pmean']))]
         tbl_print['F0'] = [boot0fit['pmean'][t]['F0'] for t in range(len(boot0fit['pmean']))]
         tbl_print['dF0'] = [boot0fit['psdev'][t]['F0'] for t in range(len(boot0fit['pmean']))]
+        tbl_print['F0*Z0_s'] = [(boot0fit['rawoutput'][t].p['F0']*boot0fit['rawoutput'][t].p['Z0_s']).mean for t in range(len(boot0fit['rawoutput']))]
+        tbl_print['dF0*Z0_s'] = [(boot0fit['rawoutput'][t].p['F0']*boot0fit['rawoutput'][t].p['Z0_s']).sdev for t in range(len(boot0fit['rawoutput']))]
         tbl_print['chi2/dof'] = np.array(boot0fit['chi2'])/np.array(boot0fit['dof'])
         tbl_print['logGBF'] = boot0fit['logGBF']
         print tabulate(tbl_print, headers='keys')
@@ -118,19 +125,30 @@ if __name__=='__main__':
 
     # yaml entires
     fitmeta = params['axial_fit']
-    dfitmeta = dparams['decay_ward_fit']
     # log in sql
     psqlpwd = pwd.passwd()
     psql = sql.pysql('cchang5','cchang5',psqlpwd)
     # read data
     ll = read_axial(psql, params, 'axial_ll')
     ls = read_axial(psql, params, 'axial_ls')
+    #ll = ll[:200]
+    #ls = ls[:200]
     # read two-point
     pionSS, pionPS = decay.read_decay_bs(psql,dparams,'pion')
     kaonSS, kaonPS = decay.read_decay_bs(psql,dparams,'kaon')
+    #pionSS = pionSS[:200]
+    #pionPS = pionPS[:200]
+    #kaonSS = kaonSS[:200]
+    #kaonPS = kaonPS[:200]
     # axial_ll
+    print np.shape(pionSS), np.shape(pionPS), np.shape(ll)
     ll = np.concatenate((pionSS, pionPS, ll), axis=1)
     llgv = c51.make_gvars(ll)
     fpi = fit_axial(psql,params,dparams,'axial_ll',llgv)
     # axial_ls
-    #fk = decay_axial(params, 'axial_ls')
+    ls = np.concatenate((kaonSS, kaonPS, ls), axis=1)
+    lsgv = c51.make_gvars(ls)
+    fka = fit_axial(psql,params,dparams,'axial_ls',lsgv)
+    # print result
+    print fpi
+    print fka

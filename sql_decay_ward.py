@@ -24,8 +24,7 @@ def read_mres_bs(psql,params,mq):
     pp = psql.data('dwhisq_corr_jmu',mresp['meta_id']['pp'])
     return mp, pp
 
-def fit_mres_bs(psql,params,mq,gv_mp,gv_pp):
-    print 'fitting mres', mq
+def fit_mres_bs(psql,params,mq,gv_mp,gv_pp,bootn_fit=False,g=None):
     tag = params['decay_ward_fit']['ens']['tag']
     stream = params['decay_ward_fit']['ens']['stream']
     Nbs = params['decay_ward_fit']['nbs']
@@ -38,13 +37,39 @@ def fit_mres_bs(psql,params,mq,gv_mp,gv_pp):
         c51.scatter_plot(np.arange(len(boot0gv)), boot0gv, '%s mres' %str(mq))
         plt.show()
     # read priors
-    prior = mresp['priors']
+    if bootn_fit:
+        if g == 0:
+            prior = mresp['priors']
+        else:
+            prior = dict()
+            for k in mresp['priors'].keys():
+                prior[k] = [np.random.normal(mresp['priors'][k][0],mresp['priors'][k][1]), mresp['priors'][k][1]]
+    else:
+        prior = mresp['priors']
+    # read init
+    try:
+        tstring = '%s_%s' %(mresp['trange']['tmin'][0], mresp['trange']['tmax'][0])
+        f_init = open('./jmu_posterior/jmu_%s_%s.yml' %(tag,tstring), 'r')
+        init = yaml.load(f_init)
+        f_init.close()
+    except:
+        init = None
     # read trange
     trange = mresp['trange']
     # fit boot0
     boot0p = c51.dict_of_tuple_to_gvar(prior)
     fitfcn = c51.fit_function(T)
-    boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.mres_fitfcn)
+    boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.mres_fitfcn,init=init,bayes=params['flags']['bayes'])
+    if params['flags']['boot0_update']:
+        post = boot0fit['rawoutput'][0].pmean
+        res_dump = dict()
+        tstring = "%s_%s" %(trange['tmin'][0],trange['tmax'][0])
+        for k in post.keys():
+            res_dump[k] = float(post[k])
+        f_dump = open('./jmu_posterior/jmu_%s_%s.yml' %(tag,tstring), 'w+')
+        yaml.dump(res_dump, f_dump)
+        f_dump.flush()
+        f_dump.close()
     if params['flags']['stability_plot']:
         c51.stability_plot(boot0fit,'mres',str(mq))
         plt.show()
@@ -57,44 +82,6 @@ def fit_mres_bs(psql,params,mq,gv_mp,gv_pp):
         tbl_print['chi2/dof'] = np.array(boot0fit['chi2'])/np.array(boot0fit['dof'])
         tbl_print['logGBF'] = boot0fit['logGBF']
         print tabulate(tbl_print, headers='keys')
-    # submit boot0 to db
-    if params['flags']['write']:
-        corr_lst = [mresp['meta_id']['mp'],mresp['meta_id']['pp']]
-        fit_id = c51.select_fitid('mres',params)
-        for t in range(len(boot0fit['tmin'])):
-            init_id = psql.initid(boot0fit['p0'][t])
-            prior_id = psql.priorid(boot0fit['prior'][t])
-            tmin = boot0fit['tmin'][t]
-            tmax = boot0fit['tmax'][t]
-            result = c51.make_result(boot0fit,t)
-            psql.submit_boot0('jmu',corr_lst,fit_id,tmin,tmax,init_id,prior_id,result,params['flags']['update'])
-    if len(boot0fit['tmin'])!=1 or len(boot0fit['tmax'])!=1:
-        print "sweeping over time range"
-        print "skipping bootstrap"
-        return 0
-    else: pass
-    if False: #params['flags']['write']:
-        bsresult = []
-        psql.chkbsprior(tag,stream,Nbs,boot0fit['prior'][0])
-        for g in tqdm.tqdm(range(Nbs)):
-            # make bs gvar dataset
-            n = g+1
-            bs_id,draw = psql.fetchonebs(nbs=n,Mbs=Mbs,ens=tag,stream=stream)
-            bootn = boot0[draw]
-            bootngv = c51.make_gvars(bootn)
-            # read randomized priors
-            bsprior_id,bsp = psql.bspriorid(tag,stream,g,boot0fit['prior'][0])
-            bsp = c51.dict_of_tuple_to_gvar(bsp)
-            # read initial guess
-            init = {"mres":boot0fit['pmean'][0]['mres']}
-            #Fit
-            bsfit = c51.fitscript_v2(trange,T,bootngv,bsp,fitfcn.mres_fitfcn,init)
-            tmin = bsfit['tmin'][0]
-            tmax = bsfit['tmax'][0]
-            boot0_id = psql.select_boot0('jmu',corr_lst,fit_id,tmin,tmax,init_id,prior_id)
-            bsinit_id = psql.initid(bsfit['p0'][0])
-            result = c51.make_result(bsfit,0) #"""{"mres":%s, "chi2":%s, "dof":%s}""" %(bsfit['pmean'][t]['mres'],bsfit['chi2'][t],bsfit['dof'][t])
-            psql.submit_bs('jmu_bs',boot0_id,bs_id,Mbs,bsinit_id,bsprior_id,result,params['flags']['update'])
     return {'mres_fit': boot0fit['rawoutput'][0]}
 
 def read_decay_bs(psql,params,meson):
@@ -116,7 +103,7 @@ def read_decay_bs(psql,params,meson):
     PS = c51.fold(psql.data('dwhisq_corr_meson',mesp['meta_id']['PS']))
     return SS, PS
 
-def fit_decay_bs(psql,params,meson, gv_SS, gv_PS):
+def fit_decay_bs(psql,params,meson, gv_SS, gv_PS,bootn_fit=False,g=None):
     if meson=='pion':
         mq1 = params['decay_ward_fit']['ml']
         mq2 = mq1
@@ -126,7 +113,6 @@ def fit_decay_bs(psql,params,meson, gv_SS, gv_PS):
     elif meson == 'etas':
         mq1 = params['decay_ward_fit']['ms']
         mq2 = mq1
-    print 'fitting two point', mq1, mq2
     tag = params['decay_ward_fit']['ens']['tag']
     stream = params['decay_ward_fit']['ens']['stream']
     nstates = params['decay_ward_fit']['nstates']
@@ -160,13 +146,44 @@ def fit_decay_bs(psql,params,meson, gv_SS, gv_PS):
     # concatenate data
     boot0gv = np.concatenate((gv_SS, gv_PS))
     # read priors
-    prior = c51.meson_priors(mesp['priors'],nstates)
+    if bootn_fit:
+        if g == 0:
+            priorn = mesp['priors']
+        else:
+            priorn = dict()
+            for n in mesp['priors'].keys():
+                priorn[n] = {}
+                for k in mesp['priors'][n].keys():
+                    priorn[n][k] = [np.random.normal(mesp['priors'][n][k][0],mesp['priors'][n][k][1]), mesp['priors'][n][k][1]]
+    else:
+        priorn = mesp['priors']
+    prior = c51.meson_priors(priorn,nstates)
+    # read init
+    try:
+        tstring = '%s_%s' %(mesp['trange']['tmin'][0], mesp['trange']['tmax'][0])
+        f_init = open('./meson_posterior/meson_%s_%s.yml' %(tag,tstring), 'r')
+        init = yaml.load(f_init)
+        f_init.close()
+    except:
+        init = None
     # read trange
     trange = mesp['trange']
     # fit boot0
     boot0p = c51.dict_of_tuple_to_gvar(prior)
     fitfcn = c51.fit_function(T,params['decay_ward_fit']['nstates'])
-    boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.twopt_fitfcn_ss_ps)
+    boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.twopt_fitfcn_ss_ps,init=init,bayes=params['flags']['bayes'])
+    #boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.dwhisq_twopt_osc_ss_ps)
+    #print boot0fit['rawoutput'][0]
+    if params['flags']['boot0_update']:
+        post = boot0fit['rawoutput'][0].pmean
+        mes_dump = dict()
+        tstring = "%s_%s" %(trange['tmin'][0],trange['tmax'][0])
+        for k in post.keys():
+            mes_dump[k] = float(post[k])
+        f_dump = open('./meson_posterior/meson_%s_%s.yml' %(tag,tstring), 'w+')
+        yaml.dump(mes_dump, f_dump)
+        f_dump.flush()
+        f_dump.close()
     if params['flags']['stability_plot']:
         c51.stability_plot(boot0fit,'E0','%s_%s' %(str(mq1),str(mq2)))
         plt.show()
@@ -183,44 +200,6 @@ def fit_decay_bs(psql,params,meson, gv_SS, gv_PS):
         tbl_print['chi2/dof'] = np.array(boot0fit['chi2'])/np.array(boot0fit['dof'])
         tbl_print['logGBF'] = boot0fit['logGBF']
         print tabulate(tbl_print, headers='keys')
-    # submit boot0 to db
-    if params['flags']['write']:
-        corr_lst = [mesp['meta_id']['SS'],mesp['meta_id']['PS']]
-        fit_id = c51.select_fitid('meson',params)
-        for t in range(len(boot0fit['tmin'])):
-            init_id = psql.initid(boot0fit['p0'][t])
-            prior_id = psql.priorid(boot0fit['prior'][t])
-            tmin = boot0fit['tmin'][t]
-            tmax = boot0fit['tmax'][t]
-            result = c51.make_result(boot0fit,t)
-            psql.submit_boot0('meson',corr_lst,fit_id,tmin,tmax,init_id,prior_id,result,params['flags']['update'])
-    if len(boot0fit['tmin'])!=1 or len(boot0fit['tmax'])!=1:
-        print "sweeping over time range"
-        print "skipping bootstrap"
-        return 0
-    else: pass
-    if False: #params['flags']['write']:
-        bsresult = []
-        psql.chkbsprior(tag,stream,Nbs,boot0fit['prior'][0])
-        for g in tqdm.tqdm(range(Nbs)):
-            # make bs gvar dataset
-            n = g+1
-            bs_id,draw = psql.fetchonebs(nbs=n,Mbs=Mbs,ens=tag,stream=stream)
-            bootn = boot0[draw]
-            bootngv = c51.make_gvars(bootn)
-            # read randomized priors
-            bsprior_id,bsp = psql.bspriorid(tag,stream,g,boot0fit['prior'][0])
-            bsp = c51.dict_of_tuple_to_gvar(bsp)
-            # read initial guess
-            init = c51.read_init(boot0fit,0) #{"mres":boot0fit['pmean'][0]['mres']}
-            #Fit
-            bsfit = c51.fitscript_v2(trange,T,bootngv,bsp,fitfcn.twopt_fitfcn_ss_ps,init)
-            tmin = bsfit['tmin'][0]
-            tmax = bsfit['tmax'][0]
-            boot0_id = psql.select_boot0('meson',corr_lst,fit_id,tmin,tmax,init_id,prior_id)
-            bsinit_id = psql.initid(bsfit['p0'][0])
-            result = c51.make_result(bsfit,0) #"""{"mres":%s, "chi2":%s, "dof":%s}""" %(bsfit['pmean'][t]['mres'],bsfit['chi2'][t],bsfit['dof'][t])
-            psql.submit_bs('meson_bs',boot0_id,bs_id,Mbs,bsinit_id,bsprior_id,result,params['flags']['update'])
     return {'meson_fit': boot0fit['rawoutput'][0]}
 
 def decay_constant(params, Z0_p, E0, mres_pion, mres_etas='pion'):
@@ -251,54 +230,100 @@ if __name__=='__main__':
     psql = sql.pysql('cchang5','cchang5',psqlpwd)
     # fit mres
     # ml mres
-    mp, pp = read_mres_bs(psql,params,fitmeta['ml'])
-    gv_mp, gv_pp = concatgv(mp, pp)
-    res = fit_mres_bs(psql,params,fitmeta['ml'],gv_mp,gv_pp)
-    print res['mres_fit']
+    mpl, ppl = read_mres_bs(psql,params,fitmeta['ml'])
+    gv_mp, gv_pp = concatgv(mpl, ppl)
+    resl = fit_mres_bs(psql,params,fitmeta['ml'],gv_mp,gv_pp)
+    print resl['mres_fit']
     #buffdict = gv.BufferDict()
     #buffdict = res['mres_fit'].p
     # ms mres
-    mp, pp = read_mres_bs(psql,params,fitmeta['ms'])
-    gv_mp, gv_pp = concatgv(mp, pp)
-    res = fit_mres_bs(psql,params,fitmeta['ms'],gv_mp,gv_pp)
-    print res['mres_fit']
+    #mps, pps = read_mres_bs(psql,params,fitmeta['ms'])
+    #gv_mp, gv_pp = concatgv(mps, pps)
+    #ress = fit_mres_bs(psql,params,fitmeta['ms'],gv_mp,gv_pp)
+    #print ress['mres_fit']
 
     ## bootstrap decay constant
-    # fit pion
-    SS, PS = read_decay_bs(psql,params,'pion')
-    gv_SS, gv_PS = concatgv(SS, PS)
-    res = fit_decay_bs(psql,params,'pion', gv_SS, gv_PS)
-    #print res['meson_fit']
-    #buffdict.update(res['meson_fit'].p)
-    # fit kaon
-    SS, PS = read_decay_bs(psql,params,'kaon')
-    gv_SS, gv_PS = concatgv(SS, PS)
-    res = fit_decay_bs(psql,params,'kaon', gv_SS, gv_PS)
-    #print res['meson_fit']
+    ## fit pion
+    SSpi, PSpi = read_decay_bs(psql,params,'pion')
+    gv_SS, gv_PS = concatgv(SSpi, PSpi)
+    resp = fit_decay_bs(psql,params,'pion', gv_SS, gv_PS)
+    print resp['meson_fit']
+    ## fit kaon
+    #SSka, PSka = read_decay_bs(psql,params,'kaon')
+    #gv_SS, gv_PS = concatgv(SSka, PSka)
+    #resk = fit_decay_bs(psql,params,'kaon', gv_SS, gv_PS)
+    ## fit etas
+    ##SS, PS = read_decay_bs(psql,params,'etas')
+    ##gv_SS, gv_PS = concatgv(SS, PS)
+    ##res = fit_decay_bs(psql,params,'etas', gv_SS, gv_PS)
+    ##print res['meson_fit']
+    #
+    ##print "decay constants"
+    #fk = decay_constant(params, resk['meson_fit'].p['Z0_p'], resk['meson_fit'].p['E0'], resl['mres_fit'].p['mres'], ress['mres_fit'].p['mres']) / np.sqrt(2)
+    #fp = decay_constant(params, resp['meson_fit'].p['Z0_p'], resp['meson_fit'].p['E0'], resl['mres_fit'].p['mres'], mres_etas='pion') / np.sqrt(2)
+    #print "fk:", fk
+    #print "fp:", fp
+    #print "fk/fp:", fk/fp
 
-    #print buffdict.keys()
-    #print gv.evalcorr(buffdict) #this is wrong. mres isn't correlated due to covar unrelated
-    ## calculate boot0 decay constant
-    #fpi = decay_constant(params, decay_pion_proc.read_boot0('Z0_p'), decay_pion_proc.read_boot0('E0'), mres_pion_proc.read_boot0('mres'))
-    #fk = decay_constant(params, decay_kaon_proc.read_boot0('Z0_p'), decay_kaon_proc.read_boot0('E0'), mres_pion_proc.read_boot0('mres'), mres_etas_proc.read_boot0('mres'))
-    #ratio = fk/fpi
-    #print 'fk/fpi:', ratio
-    ## calculate bootstrap error
-    #fpi_bs = decay_constant(params, decay_pion_proc.read_bs('Z0_p','on'), decay_pion_proc.read_bs('E0','on'), mres_pion_proc.read_bs('mres','on'))
-    #fk_bs = decay_constant(params, decay_kaon_proc.read_bs('Z0_p','on'), decay_kaon_proc.read_bs('E0','on'), mres_pion_proc.read_bs('mres','on'), mres_etas_proc.read_bs('mres','on'))
-    #plttbl = collections.OrderedDict()
-    #plttbl['tmin'] = decay_pion_proc.tmin
-    #plttbl['tmax'] = decay_pion_proc.tmax
-    #plttbl['fk'] = fk
-    #plttbl['fk_bserr'] = np.std(fk_bs, axis=0)
-    #plttbl['fpi'] = fpi
-    #plttbl['fpi_bserr'] = np.std(fpi_bs, axis=0)
-    #plttbl['fk/fpi'] = fk/fpi
-    #plttbl['fk/fpi_bserr(%)'] = np.std(fk_bs/fpi_bs, axis=0)*100
-    #print tabulate(plttbl, headers='keys')
-    #if params.plot_hist_flag == 'on':
-    #    fpi_bs = decay_constant(params, decay_pion_proc.read_bs('Z0_p'), decay_pion_proc.read_bs('E0'), mres_pion_proc.read_bs('mres'))
-    #    fk_bs = decay_constant(params, decay_kaon_proc.read_bs('Z0_p'), decay_kaon_proc.read_bs('E0'), mres_pion_proc.read_bs('mres'), mres_etas_proc.read_bs('mres'))
-    #    c51.histogram_plot(fpi_bs, xlabel='fpi')
-    #    c51.histogram_plot(fk_bs, xlabel='fk')
-    #plt.show()
+    if params['flags']['bootstrap']:
+        params['flags']['plot_data'] = False
+        params['flags']['stability_plot'] = False
+        params['flags']['tabulate'] = False
+        Nbs = params['decay_ward_fit']['nbs']
+        Nbsmin = params['decay_ward_fit']['nbsmin']
+        bslist = psql.fetch_draws(params['decay_ward_fit']['ens']['tag'], Nbs)
+        # mres l
+        # update boot0
+        if params['flags']['bootn_mresl']:
+            params['flags']['boot0_update'] = True
+            gv_mp, gv_pp = concatgv(mpl, ppl)
+            fit_mres_bs(psql,params,fitmeta['ml'],gv_mp,gv_pp)
+            params['flags']['boot0_update'] = False
+            print "updated resl boot0"
+            psql.insert_mres_v1_meta(params,'ml')
+            for g in tqdm.tqdm(range(Nbsmin,Nbs+1)): # THIS FITS boot0 ALSO
+                draws = np.array(bslist[g][1])
+                mpn = mpl[draws,:]
+                ppn = ppl[draws,:]
+                gv_mpn, gv_ppn = concatgv(mpn, ppn)
+                sfit = fit_mres_bs(psql,params,fitmeta['ml'],gv_mpn,gv_ppn,True,g)['mres_fit']
+                p = sfit.pmean
+                p['Q'] = sfit.Q
+                psql.insert_mres_v1_result(params,g,len(draws),p,'ml')
+        # mres s
+        # update boot0
+        if params['flags']['bootn_mress']:
+            params['flags']['boot0_update'] = True
+            gv_mp, gv_pp = concatgv(mps, pps)
+            fit_mres_bs(psql,params,fitmeta['ms'],gv_mp,gv_pp)
+            params['flags']['boot0_update'] = False
+            print "updated ress boot0"
+            psql.insert_mres_v1_meta(params,'ms')
+            for g in tqdm.tqdm(range(Nbsmin,Nbs+1)): # THIS FITS boot0 ALSO
+                draws = np.array(bslist[g][1])
+                mpn = mps[draws,:]
+                ppn = pps[draws,:]
+                gv_mpn, gv_ppn = concatgv(mpn, ppn)
+                sfit = fit_mres_bs(psql,params,fitmeta['ms'],gv_mpn,gv_ppn,True,g)['mres_fit']
+                p = sfit.pmean
+                p['Q'] = sfit.Q
+                psql.insert_mres_v1_result(params,g,len(draws),p,'ms')
+        # pion
+        # update boot0
+        if params['flags']['bootn_pion']:
+            params['flags']['boot0_update'] = True
+            gv_ss, gv_ps = concatgv(SSpi, PSpi)
+            result = fit_decay_bs(psql,params,'pion',gv_ss,gv_ps)
+            params['flags']['boot0_update'] = False
+            print result['meson_fit']
+            print "updated pion boot0"
+            psql.insert_meson_v1_meta(params,'pion')
+            for g in tqdm.tqdm(range(Nbsmin,Nbs+1)): # THIS FITS boot0 ALSO
+                draws = np.array(bslist[g][1])
+                SSn = SSpi[draws,:]
+                PSn = PSpi[draws,:]
+                gv_ssn, gv_psn = concatgv(SSn, PSn)
+                sfit = fit_decay_bs(psql,params,'pion',gv_ssn,gv_psn,True,g)['meson_fit']
+                p = sfit.pmean
+                p['Q'] = sfit.Q
+                psql.insert_meson_v1_result(params,g,len(draws),p,'pion')

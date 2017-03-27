@@ -149,6 +149,35 @@ def fhbaryon_priors(priors,fhpriors,basak,nstates,fhstates):
                 else: pass
     return p
 
+def fhbaryon_priors_v2(priors,fhpriors,gVpriors,basak,nstates,fhstates,gVstates):
+    maxstates = max(nstates,fhstates,gVstates)
+    p = baryon_priors(priors,basak,maxstates)
+    for n in range(fhstates):
+        for k in fhpriors[n+1].keys():
+            p[k] = fhpriors[n+1][k]
+    for n in range(gVstates):
+        for k in gVpriors[n+1].keys():
+            p[k] = gVpriors[n+1][k]
+    # contact priors
+    for b in basak:
+        bsrc = b[:2]
+        bsnk = b[2:]
+        for n in range(fhstates):
+            for k in fhpriors['c%s' %n].keys():
+                prior_bsrc = k.split('_')[1]
+                prior_bsnk = k.split('_')[0]
+                if bsrc == prior_bsrc and bsnk == prior_bsnk:
+                    p[k] = fhpriors['c%s' %n][k]
+                else: pass
+        for n in range(gVstates):
+            for k in gVpriors['c%s' %n].keys():
+                prior_bsrc = k.split('_')[1]
+                prior_bsnk = k.split('_')[0]
+                if bsrc == prior_bsrc and bsnk == prior_bsnk:
+                    p[k] = gVpriors['c%s' %n][k]
+                else: pass
+    return p
+
 ### READ DATASET ###
 def parity_avg(pos, neg, phase=1):
     neg = phase*np.roll(np.array(neg[:,::-1]), 1, axis=1)
@@ -260,6 +289,22 @@ def y_dep_v2(x, y, sets):
     y = y[x]
     return x, y
 
+def y_dep_v3(x, y, sets):
+    #print "parsing for two + three + gV point fit"
+    x2 = x[0]
+    fhx = x[1]
+    gVx = x[2]
+    subsets = sets/3
+    x = x2
+    for s in range(1, subsets):
+        x = np.append(x, x2+s*len(y)/sets)
+    for s in range(subsets):
+        x = np.append(x, fhx+(subsets+s)*len(y)/sets)
+    for s in range(subsets):
+        x = np.append(x, gVx+(2*subsets+s)*len(y)/sets)
+    y = y[x]
+    return x, y
+
 def y_dep_axial(x, y, sets):
     print "parsing for two + axial fit"
     x2 = x[0]
@@ -280,11 +325,12 @@ def chi2freq(chi2,prior,post):
         for k in prior.keys():
             chi2f += -1*( (prior[k].mean-post[k].mean)/prior[k].sdev )**2
     except:
-        print "doing unconstrained fit. chi^2 is kosher"
+        #print "doing unconstrained fit. chi^2 is kosher"
+        pass
     return chi2f
 
 # sets calculated
-def fitscript_v2(trange,T,data,priors,fcn,init=None,basak=None):
+def fitscript_v2(trange,T,data,priors,fcn,init=None,basak=None,bayes=True):
     sets = len(data)/T
     #print "sets:", sets
     pmean = []
@@ -306,7 +352,10 @@ def fitscript_v2(trange,T,data,priors,fcn,init=None,basak=None):
             if basak is not None:
                 x = {'indep': x, 'basak': basak}
             else: pass
-            fit = lsqfit.nonlinear_fit(data=(x,y),prior=priors,fcn=fcn,p0=init,maxit=1000000) #,svdcut=1E-3)
+            if bayes:
+                fit = lsqfit.nonlinear_fit(data=(x,y),prior=priors,fcn=fcn,maxit=1000000) #,svdcut=1E-3)
+            else:
+                fit = lsqfit.nonlinear_fit(data=(x,y),fcn=fcn,p0=init,maxit=1000000) #,svdcut=1E-3)
             pmean.append(fit.pmean)
             psdev.append(fit.psdev)
             post.append(fit.p)
@@ -343,9 +392,9 @@ def fitscript_v2(trange,T,data,priors,fcn,init=None,basak=None):
     fittbl['rawoutput'] = rawoutput
     return fittbl
 
-def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None,axial=False):
+def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None,axial=False,bayes=True):
     sets = len(data)/T
-    print "sets:", sets
+    #print "sets:", sets
     pmean = []
     psdev = []
     post = []
@@ -378,8 +427,10 @@ def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None,axial=Fa
                         #print [(i.sdev)**2 for i in y]
                     else: pass
                     # nonlinear fit
-                    fit = lsqfit.nonlinear_fit(data=(x,y),prior=priors,fcn=fcn,maxit=1000000) #,svdcut=1E-5)
-                    #fit = lsqfit.nonlinear_fit(data=(x,y),fcn=fcn,p0=init,maxit=1000000) #,svdcut=1E-5)
+                    if bayes:
+                        fit = lsqfit.nonlinear_fit(data=(x,y),prior=priors,p0=init,fcn=fcn,maxit=1000000) #,svdcut=1E-2)
+                    else:
+                        fit = lsqfit.nonlinear_fit(data=(x,y),fcn=fcn,p0=init,maxit=1000000) #,svdcut=8.95E-4)
                     # empirical bayes
                     #def fitargs(z, data=(x,y), prior=priors,fcn=fcn,p0=init):
                     #    z = np.exp(z)
@@ -392,6 +443,7 @@ def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None,axial=Fa
                     #z0 = np.zeros(len(priors))
                     #fit, z = lsqfit.empbayes_fit(z0, fitargs, maxit=1000000) #,svdcut=1E-5)
                     #print fhtmin, fhtmax, fit.p['gA00'].mean, fit.p['gA00'].sdev, fit.p['E0'].mean, fit.p['E0'].sdev, fit.chi2/fit.dof, fit.Q, fit.logGBF
+                    print fit
                     pmean.append(fit.pmean)
                     psdev.append(fit.psdev)
                     post.append(fit.p)
@@ -445,6 +497,85 @@ def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None,axial=Fa
     fittbl['rawoutput'] = rawoutput
     return fittbl
 
+def fitscript_v4(trange,fhtrange,gVtrange,T,data,priors,fcn,init=None,basak=None,axial=False,bayes=True):
+    sets = len(data)/T
+    #print "sets:", sets
+    pmean = []
+    psdev = []
+    post = []
+    p0 = []
+    prior = []
+    tmintbl = []
+    tmaxtbl = []
+    fhtmintbl = []
+    fhtmaxtbl = []
+    gVtmintbl = []
+    gVtmaxtbl = []
+    chi2 = []
+    chi2f = []
+    dof = []
+    lgbftbl = []
+    Q = []
+    rawoutput = []
+    for tmin in range(trange['tmin'][0], trange['tmin'][1]+1):
+        for tmax in range(trange['tmax'][0], trange['tmax'][1]+1):
+            for fhtmin in range(fhtrange['tmin'][0], fhtrange['tmin'][1]+1):
+                for fhtmax in range(fhtrange['tmax'][0], fhtrange['tmax'][1]+1):
+                    for gVtmin in range(gVtrange['tmin'][0], gVtrange['tmin'][1]+1):
+                        for gVtmax in range(gVtrange['tmax'][0], gVtrange['tmax'][1]+1):
+                            x2 = x_indep(tmin, tmax)
+                            fhx = x_indep(fhtmin, fhtmax)
+                            gVx = x_indep(gVtmin, gVtmax)
+                            x = [x2,fhx,gVx]
+                            xlist, y = y_dep_v3(x, data, sets)
+                            if basak is not None:
+                                x = {'indep': x, 'basak': basak}
+                                #print gv.evalcov(y)
+                                #print [(i.sdev)**2 for i in y]
+                            else: pass
+                            # nonlinear fit
+                            if bayes:
+                                fit = lsqfit.nonlinear_fit(data=(x,y),prior=priors,p0=init,fcn=fcn,maxit=1000000) #,svdcut=1E-5)
+                            else:
+                                fit = lsqfit.nonlinear_fit(data=(x,y),fcn=fcn,p0=init,maxit=1000000) #,svdcut=8.95E-4)
+                            #print fit.p
+                            pmean.append(fit.pmean)
+                            psdev.append(fit.psdev)
+                            post.append(fit.p)
+                            p0.append(fit.p0)
+                            prior.append(fit.prior)
+                            tmintbl.append(tmin)
+                            tmaxtbl.append(tmax)
+                            fhtmintbl.append(fhtmin)
+                            fhtmaxtbl.append(fhtmax)
+                            gVtmintbl.append(gVtmin)
+                            gVtmaxtbl.append(gVtmax)
+                            chi2.append(fit.chi2)
+                            dof.append(fit.dof)
+                            lgbftbl.append(fit.logGBF)
+                            Q.append(fit.Q)
+                            rawoutput.append(fit)
+                            chi2f.append(chi2freq(fit.chi2,fit.prior,fit.p))
+    fittbl = dict()
+    fittbl['tmin'] = tmintbl
+    fittbl['tmax'] = tmaxtbl
+    fittbl['fhtmin'] = fhtmintbl
+    fittbl['fhtmax'] = fhtmaxtbl
+    fittbl['gVtmin'] = gVtmintbl
+    fittbl['gVtmax'] = gVtmaxtbl
+    fittbl['pmean'] = pmean
+    fittbl['psdev'] = psdev
+    fittbl['post'] = post
+    fittbl['p0'] = p0
+    fittbl['prior'] = prior
+    fittbl['chi2'] = chi2
+    fittbl['chi2f'] = chi2f
+    fittbl['dof'] = dof
+    fittbl['logGBF'] = lgbftbl
+    fittbl['Q'] = Q
+    fittbl['rawoutput'] = rawoutput
+    return fittbl
+
 def tabulate_result(fit_proc, parameters):
     tbl = collections.OrderedDict()
     try:
@@ -464,18 +595,19 @@ def tabulate_result(fit_proc, parameters):
 
 #FIT FUNCTIONS
 class fit_function():
-    def __init__(self, T, nstates=1, fhstates=1, tau=1):
+    def __init__(self, T, nstates=1, fhstates=1, gVstates=1, tau=1):
         self.T = T
         self.nstates = nstates
         self.fhstates = fhstates
+        self.gVstates = gVstates
         self.tau = tau
     # rederived FH fit function and 2pt ########################################################
     # Z = Z/sqrt(2E0)   G = G/2E0
-    def dwhisq_dm(self,t,p,b,snk,src):
+    def dwhisq_dm(self,t,p,b,snk,src,gV=False):
         twopt = self.dwhisq_twopt(t,p,b,snk,src)
-        fh = self.dwhisq_fh(t,p,b,snk,src)
+        fh = self.dwhisq_fh(t,p,b,snk,src,gV)
         twopt1 = self.dwhisq_twopt(t+1,p,b,snk,src)
-        fh1 = self.dwhisq_fh(t+1,p,b,snk,src)
+        fh1 = self.dwhisq_fh(t+1,p,b,snk,src,gV)
         r = fh/twopt
         r1 = fh1/twopt1
         dm = r1-r
@@ -490,15 +622,52 @@ class fit_function():
             Zsnk = p['%s_Z%s%s' %(bsnk,n,snk)]
             C += Zsnk*Zsrc*np.exp(-En*t)
         return C
-    def dwhisq_fh(self,t,p,b,snk,src):
+    def dwhisq_twopt_osc(self,t,p,snk,src):
+        C = 0
+        for n in range(self.nstates):
+            En = self.E_osc(p,n)
+            Zsrc = p['Z%s_%s' %(n,src)]
+            Zsnk = p['Z%s_%s' %(n,snk)]
+            C += Zsnk*Zsrc*(-1)**(n*t)*(np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)))
+        return C
+    def mixed_twopt_osc(self,t,p):
+        C = 0
+        for n in range(self.nstates):
+            En = self.E_osc(p,n)
+            An = p['A%s' %n]
+            C += An*(-1)**(n*t)*(np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)))
+        return C
+    def mixed_twopt_noosc(self,t,p):
+        C = 0
+        for n in range(self.nstates):
+            En = self.E(p,n)
+            An = p['A%s' %n]
+            C += An*(np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)))
+        return C
+    def E_osc(self,p,n):
+        En = p['E0']
+        if n%2 == 0:
+            for m in range(0,n,2):
+                En += np.exp(p['E%s' %(m+2)])
+            return En
+        if n%2 == 1:
+            En += np.exp(p['E1'])
+            for m in range(1,n,2):
+                En += np.exp(p['E%s' %(m+2)])
+            return En
+    def dwhisq_fh(self,t,p,b,snk,src,gV):
         bsrc = b[:2]
         bsnk = b[2:]
         M = 0
-        for n in range(self.fhstates):
-            for m in range(self.fhstates):
+        if gV:
+            states = self.gVstates
+        else:
+            states = self.fhstates
+        for n in range(states):
+            for m in range(states):
                 En = self.E(p,n)
                 Em = self.E(p,m)
-                Gmn = self.G(p,b,m,n)
+                Gmn = self.G(p,b,m,n,gV)
                 Zn = p['%s_Z%s%s' %(bsrc,n,src)]
                 Zm = p['%s_Z%s%s' %(bsnk,m,snk)]
                 if n == m:
@@ -507,8 +676,8 @@ class fit_function():
                     Dnm = En-Em
                     M += Zm*Gmn*Zn*(np.exp(-0.5*Dnm)*np.exp(-Em*t)-np.exp(0.5*Dnm)*np.exp(-En*t))/(np.exp(0.5*Dnm)-np.exp(-0.5*Dnm))
         # Dn parameterizes contact terms + current outside of src snk
-        for n in range(self.fhstates):
-            Dn = p['%s_%s_D%s%s%s' %(bsnk,bsrc,n,snk,src)]
+        for n in range(states):
+            Dn = self.Dn(p,bsnk,bsrc,n,snk,src,gV)
             En = self.E(p,n)
             M += Dn*np.exp(-En*t)
         return M
@@ -575,6 +744,46 @@ class fit_function():
             dmps = np.concatenate((dmps,dmpsl[i]))
         fitfcn = np.concatenate((ss,ps,dmss,dmps))
         return fitfcn
+    def dwhisq_dm_gVdm_ss_ps(self,t,p):
+        x2 = t['indep'][0]
+        fhx = t['indep'][1]
+        gVx = t['indep'][2]
+        # two point
+        ssl = []
+        psl = []
+        for b in t['basak']:
+            ssl.append(self.dwhisq_twopt(x2,p,b,'s','s'))
+            psl.append(self.dwhisq_twopt(x2,p,b,'p','s'))
+        ss = ssl[0]
+        ps = psl[0]
+        for i in range(len(ssl)-1):
+            ss = np.concatenate((ss,ssl[i+1]))
+            ps = np.concatenate((ps,psl[i+1]))
+        # gA
+        dmssl = []
+        dmpsl = []
+        for b in t['basak']:
+            dmssl.append(self.dwhisq_dm(fhx,p,b,'s','s'))
+            dmpsl.append(self.dwhisq_dm(fhx,p,b,'p','s'))
+        dmss = dmssl[0]
+        dmps = dmpsl[0]
+        for i in range(1,len(dmssl)):
+            dmss = np.concatenate((dmss,dmssl[i]))
+            dmps = np.concatenate((dmps,dmpsl[i]))
+        # gV
+        gVdmssl = []
+        gVdmpsl = []
+        for b in t['basak']:
+            gVdmssl.append(self.dwhisq_dm(gVx,p,b,'s','s',True))
+            gVdmpsl.append(self.dwhisq_dm(gVx,p,b,'p','s',True))
+        gVdmss = gVdmssl[0]
+        gVdmps = gVdmpsl[0]
+        for i in range(1,len(dmssl)):
+            gVdmss = np.concatenate((gVdmss,gVdmssl[i]))
+            gVdmps = np.concatenate((gVdmps,gVdmpsl[i]))
+        # concatenate
+        fitfcn = np.concatenate((ss,ps,dmss,dmps,gVdmss,gVdmps))
+        return fitfcn
     def dwhisq_axial(self,t,p):
         C = 0
         for n in range(self.nstates):
@@ -583,11 +792,26 @@ class fit_function():
             Fn = p['F%s' %(n)]
             C += Fn*Zs*(np.exp(-1*En*t) - np.exp(-1*En*(self.T-t)))
         return C
+    def dwhisq_axial_osc(self,t,p):
+        C = 0
+        for n in range(self.nstates):
+            En = self.E(p,n)
+            Zs = p['Z%s_s' %(n)]
+            Fn = p['F%s' %(n)]
+            C += Fn*Zs*(-1)**(n*t)*(np.exp(-1*En*t) - np.exp(-1*En*(self.T-t)))
+        return C
     def dwhisq_twopt_axial(self,t,p):
         x2 = t[0]
         ax = t[1]
         twopt = self.twopt_fitfcn_ss_ps(x2, p)
         axial = self.dwhisq_axial(ax, p)
+        fitfcn = np.concatenate((twopt,axial))
+        return fitfcn
+    def dwhisq_twopt_osc_axial(self,t,p):
+        x2 = t[0]
+        ax = t[1]
+        twopt = self.dwhisq_twopt_osc_ss_ps(x2, p)
+        axial = self.dwhisq_axial_osc(ax, p)
         fitfcn = np.concatenate((twopt,axial))
         return fitfcn
     ##########################################################################################
@@ -619,12 +843,23 @@ class fit_function():
             D = En-E0
             denom += (-1.)**(n*(t+1))*self.B(p,b,snk,src,n,n)*np.exp(-D*t)
         return 1./denom
-    def G(self,p,b,n,m):
+    def G(self,p,b,n,m,gV):
         if n > m:
-            g = p['gA%s%s' %(str(n),str(m))]
+            if gV:
+                g = p['gV%s%s' %(str(n),str(m))]
+            else:
+                g = p['gA%s%s' %(str(n),str(m))]
         else:
-            g = p['gA%s%s' %(str(m),str(n))]
+            if gV:
+                g = p['gV%s%s' %(str(m),str(n))]
+            else:
+                g = p['gA%s%s' %(str(m),str(n))]
         return g
+    def Dn(self,p,bsnk,bsrc,n,snk,src,gV):
+        if gV:
+            return p['%s_%s_C%s%s%s' %(bsnk,bsrc,n,snk,src)]
+        else:
+            return p['%s_%s_D%s%s%s' %(bsnk,bsrc,n,snk,src)]
     def E(self,p,n):
         En = p['E0']
         for i in range(n):
@@ -941,6 +1176,11 @@ class fit_function():
         fitfcn = np.concatenate((fhss,fhps))
         return fitfcn
     # two point ss and ps simultaneous fit 
+    def dwhisq_twopt_osc_ss_ps(self, t, p):
+        fitfcn_ss = self.dwhisq_twopt_osc(t,p,'s','s')
+        fitfcn_ps = self.dwhisq_twopt_osc(t,p,'p','s')
+        fitfcn = np.concatenate((fitfcn_ss, fitfcn_ps))
+        return fitfcn
     def twopt_fitfcn_ss_ps(self, t, p):
         fitfcn_ss = self.twopt_fitfcn_ss(t, p)
         fitfcn_ps = self.twopt_fitfcn_ps(t, p)
@@ -1138,6 +1378,67 @@ def stability_plot(fittbl, key, title=''):
                 x = fittbl['fhtmax']
                 y = np.array([data[key] for data in fittbl['post']])
                 scatter_plot(x, y, title+' fhtmax stability plot', 'fhtmax (fhtmin='+str(fittbl['fhtmin'][0])+')', key, xlim=[x[0]-0.5,x[-1]+0.5])
+        else: pass #print key,':',fittbl['post'][0][key]
+    except: pass
+    # tmin stability plot
+    try:
+        if fittbl['gVtmin'][-1]-fittbl['gVtmin'][0] > 0:
+            if fittbl['gVtmax'][-1]-fittbl['gVtmax'][0] > 0:
+                output = []
+                for t in range(len(fittbl['gVtmin'])):
+                    output.append((fittbl['gVtmin'][t], fittbl['gVtmax'][t], fittbl['post'][t][key]))
+                dtype = [('gVtmin', int), ('gVtmax', int), ('post', gv._gvarcore.GVar)]
+                output = np.array(output, dtype=dtype)
+                output = np.sort(output, order='gVtmax')
+                setwidth = fittbl['gVtmin'][-1]-fittbl['gVtmin'][0]+1
+                fig = plt.figure()
+                ax1 = fig.add_subplot(111)
+                for subset in range(len(output)/setwidth):
+                    pltdata = output[setwidth*subset:setwidth*(subset+1)]
+                    x = [pltdata[i][0] for i in range(len(pltdata))]
+                    y = [pltdata[i][2] for i in range(len(pltdata))]
+                    y_plt = np.array([dat.mean for dat in y])
+                    e_plt = np.array([dat.sdev for dat in y])
+                    ax1.errorbar(x, y_plt, e_plt, label='fhtmax: '+str(pltdata[0][1]))
+                plt.title(title+' gVtmin stability plot')
+                plt.xlabel('gVtmin')
+                plt.ylabel(key)
+                plt.xlim(x[0]-0.5, x[-1]+0.5)
+                plt.legend()
+            else:
+                x = fittbl['gVtmin']
+                y = np.array([data[key] for data in fittbl['post']])
+                scatter_plot(x, y, title+' gVtmin stability plot', 'gVtmin (gVtmax='+str(fittbl['gVtmax'][0])+')', key, xlim=[x[0]-0.5,x[-1]+0.5])
+    except: pass
+    try:
+        # tmax stability plot
+        if fittbl['gVtmax'][-1]-fittbl['gVtmax'][0] > 0:
+            if fittbl['gVtmin'][-1]-fittbl['gVtmin'][0] > 0:
+                output = []
+                for t in range(len(fittbl['gVtmin'])):
+                    output.append((fittbl['gVtmin'][t], fittbl['gVtmax'][t], fittbl['post'][t][key]))
+                dtype = [('gVtmin', int), ('gVtmax', int), ('post', gv._gvarcore.GVar)]
+                output = np.array(output, dtype=dtype)
+                output = np.sort(output, order='fhtmin')
+                setwidth = fittbl['gVtmax'][-1]-fittbl['gVtmax'][0]+1
+                fig = plt.figure()
+                ax1 = fig.add_subplot(111)
+                for subset in range(len(output)/setwidth):
+                    pltdata = output[setwidth*subset:setwidth*(subset+1)]
+                    x = [pltdata[i][1] for i in range(len(pltdata))]
+                    y = [pltdata[i][2] for i in range(len(pltdata))]
+                    y_plt = np.array([dat.mean for dat in y])
+                    e_plt = np.array([dat.sdev for dat in y])
+                    ax1.errorbar(x, y_plt, e_plt, label='gVtmin: '+str(pltdata[0][0]))
+                plt.title(title+' gVtmax stability plot')
+                plt.xlabel('gVtmax')
+                plt.ylabel(key)
+                plt.xlim(x[0]-0.5, x[-1]+0.5)
+                plt.legend()
+            else:
+                x = fittbl['gVtmax']
+                y = np.array([data[key] for data in fittbl['post']])
+                scatter_plot(x, y, title+' gVtmax stability plot', 'gVtmax (gVtmin='+str(fittbl['gVtmin'][0])+')', key, xlim=[x[0]-0.5,x[-1]+0.5])
         else: pass #print key,':',fittbl['post'][0][key]
     except: pass
     return 0

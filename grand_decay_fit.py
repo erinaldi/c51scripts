@@ -23,7 +23,7 @@ if __name__=="__main__":
     ms = params['grand_ensemble'][ens]['ms']
     # decay parameter file
     user_flag = c51.user_list()
-    f = open('./sqlmaster.yml.%s' %(user_flag),'r')
+    f = open('./decay.yml','r')
     decay_params = yaml.load(f)
     f.close()
     decay_params['decay_ward_fit']['ens'] =  {"tag": ens, "stream": stream}

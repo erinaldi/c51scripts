@@ -29,6 +29,217 @@ class pysql():
             print traceback.format_exc()
             print "exiting"
             raise SystemExit
+    def insert_mres_v1_meta(self,params,mq):
+        fit_id = params['decay_ward_fit']['mres_fit_id']
+        ens = params['decay_ward_fit']['ens']['tag']
+        m = params['decay_ward_fit'][mq]
+        mp_id = params[ens]['mres'][m]['meta_id']['mp']
+        pp_id = params[ens]['mres'][m]['meta_id']['pp']
+        tmin = params[ens]['mres'][m]['trange']['tmin'][0]
+        tmax = params[ens]['mres'][m]['trange']['tmax'][0]
+        sqlcmd = "SELECT callat_fcn.upsert($$INSERT INTO callat_proj.mres_v1 (mp_id, pp_id, tmin, tmax, fit_id) VALUES (%s, %s, %s, %s, %s)$$)" %(mp_id, pp_id, tmin, tmax, fit_id)
+        self.cur.execute(sqlcmd)
+        self.conn.commit()
+    def insert_mres_v1_result(self,params,nbs,mbs,result,mq):
+        # find meta_id
+        fit_id = params['decay_ward_fit']['mres_fit_id']
+        ens = params['decay_ward_fit']['ens']['tag']
+        m = params['decay_ward_fit'][mq]
+        mp_id = params[ens]['mres'][m]['meta_id']['mp']
+        pp_id = params[ens]['mres'][m]['meta_id']['pp']
+        tmin = params[ens]['mres'][m]['trange']['tmin'][0]
+        tmax = params[ens]['mres'][m]['trange']['tmax'][0]
+        sqlcmd = "SELECT id FROM callat_proj.mres_v1 WHERE mp_id = %s AND pp_id = %s AND tmin = %s AND tmax = %s AND fit_id = %s;" %(mp_id, pp_id, tmin, tmax, fit_id)
+        self.cur.execute(sqlcmd)
+        meta_id = str(self.cur.fetchone()[0])
+        # find bs_id
+        sqlcmd = "SELECT id FROM callat_corr.hisq_ensembles WHERE tag = '%s';" %ens
+        self.cur.execute(sqlcmd)
+        ens_id = self.cur.fetchone()[0]
+        sqlcmd = "SELECT id FROM callat_corr.hisq_bootstrap WHERE hisq_ensembles_id = %s AND nbs = %s;" %(ens_id, nbs)
+        self.cur.execute(sqlcmd)
+        bs_id = self.cur.fetchone()[0]
+        # write result
+        result = str(result).replace("'",'\"')
+        sqlcmd = "SELECT callat_fcn.upsert($$INSERT INTO callat_proj.mres_v1_bs (mres_v1_id, bs_id, mbs, result) VALUES (%s, %s, %s, '%s')$$)" %(meta_id, bs_id, mbs, result)
+        self.cur.execute(sqlcmd)
+        self.conn.commit()
+    def insert_meson_v1_meta(self,params,meson):
+        if meson=='pion':
+            mq1 = params['decay_ward_fit']['ml']
+            mq2 = mq1
+        elif meson == 'kaon':
+            mq1 = params['decay_ward_fit']['ml']
+            mq2 = params['decay_ward_fit']['ms']
+        elif meson == 'etas':
+            mq1 = params['decay_ward_fit']['ms']
+            mq2 = mq1
+        fit_id = params['decay_ward_fit']['meson_fit_id']
+        ens = params['decay_ward_fit']['ens']['tag']
+        ss_id = params[ens][meson]['%s_%s' %(mq1,mq2)]['meta_id']['SS']
+        ps_id = params[ens][meson]['%s_%s' %(mq1,mq2)]['meta_id']['PS']
+        tmin = params[ens][meson]['%s_%s' %(mq1,mq2)]['trange']['tmin'][0]
+        tmax = params[ens][meson]['%s_%s' %(mq1,mq2)]['trange']['tmax'][0]
+        sqlcmd = "SELECT callat_fcn.upsert($$INSERT INTO callat_proj.meson_v1 (meson_ss_id, meson_ps_id, tmin, tmax, fit_id) VALUES (%s, %s, %s, %s, %s)$$)" %(ss_id, ps_id, tmin, tmax, fit_id)
+        self.cur.execute(sqlcmd)
+        self.conn.commit()
+    def insert_meson_v1_result(self,params,nbs,mbs,result,meson):
+        if meson=='pion':
+            mq1 = params['decay_ward_fit']['ml']
+            mq2 = mq1
+        elif meson == 'kaon':
+            mq1 = params['decay_ward_fit']['ml']
+            mq2 = params['decay_ward_fit']['ms']
+        elif meson == 'etas':
+            mq1 = params['decay_ward_fit']['ms']
+            mq2 = mq1
+        fit_id = params['decay_ward_fit']['meson_fit_id']
+        ens = params['decay_ward_fit']['ens']['tag']
+        ss_id = params[ens][meson]['%s_%s' %(mq1,mq2)]['meta_id']['SS']
+        ps_id = params[ens][meson]['%s_%s' %(mq1,mq2)]['meta_id']['PS']
+        tmin = params[ens][meson]['%s_%s' %(mq1,mq2)]['trange']['tmin'][0]
+        tmax = params[ens][meson]['%s_%s' %(mq1,mq2)]['trange']['tmax'][0]
+        sqlcmd = "SELECT id FROM callat_proj.meson_v1 WHERE meson_ss_id = %s AND meson_ps_id = %s AND tmin = %s AND tmax = %s AND fit_id = %s;" %(ss_id, ps_id, tmin, tmax, fit_id)
+        self.cur.execute(sqlcmd)
+        meta_id = str(self.cur.fetchone()[0])
+        # find bs_id
+        sqlcmd = "SELECT id FROM callat_corr.hisq_ensembles WHERE tag = '%s';" %ens
+        self.cur.execute(sqlcmd)
+        ens_id = self.cur.fetchone()[0]
+        sqlcmd = "SELECT id FROM callat_corr.hisq_bootstrap WHERE hisq_ensembles_id = %s AND nbs = %s;" %(ens_id, nbs)
+        self.cur.execute(sqlcmd)
+        bs_id = self.cur.fetchone()[0]
+        # write result
+        result = str(result).replace("'",'\"')
+        sqlcmd = "SELECT callat_fcn.upsert($$INSERT INTO callat_proj.meson_v1_bs (meson_v1_id, bs_id, mbs, result) VALUES (%s, %s, %s, '%s')$$)" %(meta_id, bs_id, mbs, result)
+        self.cur.execute(sqlcmd)
+        self.conn.commit()
+    def insert_mixed_v1_meta(self,params,meson):
+        tag = params['mixed_fit']['ens']['tag']
+        ml = "0.%s" %tag.split('m')[1]
+        ms = "0.%s" %tag.split('m')[2]
+        if meson in ['phi_ju']:
+            mq1 = ml
+            mq2 = params['mixed_fit']['ml']
+        elif meson in ['phi_js']:
+            mq1 = ml
+            mq2 = params['mixed_fit']['ms']
+        elif meson in ['phi_ru']:
+            mq1 = ms
+            mq2 = params['mixed_fit']['ml']
+        elif meson in ['phi_rs']:
+            mq1 = ms
+            mq2 = params['mixed_fit']['ms']
+        fit_id = params['mixed_fit']['mixed_fit_id']
+        ens = params['mixed_fit']['ens']['tag']
+        ps_id = params[ens][meson]['%s_%s' %(mq1,mq2)]['meta_id']
+        tmin = params[ens][meson]['%s_%s' %(mq1,mq2)]['trange']['tmin'][0]
+        tmax = params[ens][meson]['%s_%s' %(mq1,mq2)]['trange']['tmax'][0]
+        sqlcmd = "SELECT callat_fcn.upsert($$INSERT INTO callat_proj.mixed_v1 (corr_id, tmin, tmax, fit_id) VALUES (%s, %s, %s, %s)$$)" %(ps_id, tmin, tmax, fit_id)
+        self.cur.execute(sqlcmd)
+        self.conn.commit()
+    def insert_mixed_v1_result(self,params,nbs,mbs,result,meson):
+        tag = params['mixed_fit']['ens']['tag']
+        ml = "0.%s" %tag.split('m')[1]
+        ms = "0.%s" %tag.split('m')[2]
+        if meson in ['phi_ju']:
+            mq1 = ml
+            mq2 = params['mixed_fit']['ml']
+        elif meson in ['phi_js']:
+            mq1 = ml
+            mq2 = params['mixed_fit']['ms']
+        elif meson in ['phi_ru']:
+            mq1 = ms
+            mq2 = params['mixed_fit']['ml']
+        elif meson in ['phi_rs']:
+            mq1 = ms
+            mq2 = params['mixed_fit']['ms']
+        fit_id = params['mixed_fit']['mixed_fit_id']
+        ens = params['mixed_fit']['ens']['tag']
+        ps_id = params[ens][meson]['%s_%s' %(mq1,mq2)]['meta_id']
+        tmin = params[ens][meson]['%s_%s' %(mq1,mq2)]['trange']['tmin'][0]
+        tmax = params[ens][meson]['%s_%s' %(mq1,mq2)]['trange']['tmax'][0]
+        sqlcmd = "SELECT id FROM callat_proj.mixed_v1 WHERE corr_id = %s AND tmin = %s AND tmax = %s AND fit_id = %s;" %(ps_id, tmin, tmax, fit_id)
+        self.cur.execute(sqlcmd)
+        meta_id = str(self.cur.fetchone()[0])
+        # find bs_id
+        sqlcmd = "SELECT id FROM callat_corr.hisq_ensembles WHERE tag = '%s';" %ens
+        self.cur.execute(sqlcmd)
+        ens_id = self.cur.fetchone()[0]
+        sqlcmd = "SELECT id FROM callat_corr.hisq_bootstrap WHERE hisq_ensembles_id = %s AND nbs = %s;" %(ens_id, nbs)
+        self.cur.execute(sqlcmd)
+        bs_id = self.cur.fetchone()[0]
+        # write result
+        result = str(result).replace("'",'\"')
+        sqlcmd = "SELECT callat_fcn.upsert($$INSERT INTO callat_proj.mixed_v1_bs (mixed_v1_id, bs_id, mbs, result) VALUES (%s, %s, %s, '%s')$$)" %(meta_id, bs_id, mbs, result)
+        self.cur.execute(sqlcmd)
+        self.conn.commit()
+    def insert_gA_v1_meta(self,params):
+        fit_id = params['gA_fit']['fit_id']
+        ens = params['gA_fit']['ens']['tag']
+        ml = params['gA_fit']['ml']
+        proton_ss_id = params[ens]['proton'][ml]['meta_id']['SS']['G1G1']
+        proton_ps_id = params[ens]['proton'][ml]['meta_id']['PS']['G1G1']
+        proton_tmin = params[ens]['proton'][ml]['trange']['tmin'][0]
+        proton_tmax = params[ens]['proton'][ml]['trange']['tmax'][0]
+        axial_ss_id = params[ens]['gA'][ml]['meta_id']['SS']['G1G1']
+        axial_ps_id = params[ens]['gA'][ml]['meta_id']['PS']['G1G1']
+        axial_tmin = params[ens]['gA'][ml]['trange']['tmin'][0]
+        axial_tmax = params[ens]['gA'][ml]['trange']['tmax'][0]
+        vector_ss_id = params[ens]['gV'][ml]['meta_id']['SS']['G1G1']
+        vector_ps_id = params[ens]['gV'][ml]['meta_id']['PS']['G1G1']
+        vector_tmin = params[ens]['gV'][ml]['trange']['tmin'][0]
+        vector_tmax = params[ens]['gV'][ml]['trange']['tmax'][0]
+        sqlcmd = "SELECT callat_fcn.upsert($$INSERT INTO callat_proj.gA_v1 (proton_ss_id, proton_ps_id, axial_ss_id, axial_ps_id, vector_ss_id, vector_ps_id, proton_tmin, proton_tmax, axial_tmin, axial_tmax, vector_tmin, vector_tmax, fit_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)$$)" %(proton_ss_id, proton_ps_id, axial_ss_id, axial_ps_id, vector_ss_id, vector_ps_id, proton_tmin, proton_tmax, axial_tmin, axial_tmax, vector_tmin, vector_tmax, fit_id)
+        self.cur.execute(sqlcmd)
+        self.conn.commit()
+    def insert_gA_v1_result(self,params,nbs,mbs,result):
+        # find meta_id
+        fit_id = params['gA_fit']['fit_id']
+        ens = params['gA_fit']['ens']['tag']
+        ml = params['gA_fit']['ml']
+        proton_ss_id = params[ens]['proton'][ml]['meta_id']['SS']['G1G1']
+        proton_ps_id = params[ens]['proton'][ml]['meta_id']['PS']['G1G1']
+        proton_tmin = params[ens]['proton'][ml]['trange']['tmin'][0]
+        proton_tmax = params[ens]['proton'][ml]['trange']['tmax'][0]
+        axial_ss_id = params[ens]['gA'][ml]['meta_id']['SS']['G1G1']
+        axial_ps_id = params[ens]['gA'][ml]['meta_id']['PS']['G1G1']
+        axial_tmin = params[ens]['gA'][ml]['trange']['tmin'][0]
+        axial_tmax = params[ens]['gA'][ml]['trange']['tmax'][0]
+        vector_ss_id = params[ens]['gV'][ml]['meta_id']['SS']['G1G1']
+        vector_ps_id = params[ens]['gV'][ml]['meta_id']['PS']['G1G1']
+        vector_tmin = params[ens]['gV'][ml]['trange']['tmin'][0]
+        vector_tmax = params[ens]['gV'][ml]['trange']['tmax'][0]
+        sqlcmd = "SELECT id FROM callat_proj.gA_v1 WHERE proton_ss_id = %s AND proton_ps_id = %s AND axial_ss_id = %s AND axial_ps_id = %s AND vector_ss_id = %s AND vector_ps_id = %s AND proton_tmin = %s AND proton_tmax = %s AND axial_tmin = %s AND axial_tmax = %s AND vector_tmin = %s AND vector_tmax = %s AND fit_id = %s;" %(proton_ss_id, proton_ps_id, axial_ss_id, axial_ps_id, vector_ss_id, vector_ps_id, proton_tmin, proton_tmax, axial_tmin, axial_tmax, vector_tmin, vector_tmax, fit_id)
+        self.cur.execute(sqlcmd)
+        meta_id = str(self.cur.fetchone()[0])
+        # find bs_id
+        sqlcmd = "SELECT id FROM callat_corr.hisq_ensembles WHERE tag = '%s';" %ens
+        self.cur.execute(sqlcmd)
+        ens_id = self.cur.fetchone()[0]
+        sqlcmd = "SELECT id FROM callat_corr.hisq_bootstrap WHERE hisq_ensembles_id = %s AND nbs = %s;" %(ens_id, nbs)
+        self.cur.execute(sqlcmd)
+        bs_id = self.cur.fetchone()[0]
+        # write result
+        result = str(result).replace("'",'\"')
+        sqlcmd = "SELECT callat_fcn.upsert($$INSERT INTO callat_proj.gA_v1_bs (gA_v1_id, bs_id, mbs, result) VALUES (%s, %s, %s, '%s')$$)" %(meta_id, bs_id, mbs, result)
+        self.cur.execute(sqlcmd)
+        self.conn.commit()
+    def fetch_draws(self,ens,nbs,mbs=False):
+        sqlcmd = "SELECT id from callat_corr.hisq_ensembles where tag = '%s';" %ens
+        self.cur.execute(sqlcmd)
+        meta_id = self.cur.fetchone()[0]
+        if mbs in [False, 1.5, 2]:
+            sqlcmd = "SELECT draws FROM callat_corr.hisq_bootstrap WHERE nbs='0' AND hisq_ensembles_id='%s';" %meta_id
+            self.cur.execute(sqlcmd)
+            mbslength = len(self.cur.fetchone()[0])
+            if mbs in [1.5, 2]:
+                mbslength = mbslength*mbs
+        sqlcmd = "SELECT nbs, draws FROM callat_corr.hisq_bootstrap WHERE nbs=0 AND hisq_ensembles_id='%s' UNION SELECT nbs, draws[0:%s] FROM callat_corr.hisq_bootstrap WHERE nbs>=1 AND nbs<=%s AND hisq_ensembles_id='%s' ORDER BY nbs;" %(meta_id,mbslength,nbs,meta_id)
+        self.cur.execute(sqlcmd)
+        #bs = np.squeeze(np.array(self.cur.fetchall()))
+        bs = self.cur.fetchall()
+        return bs
     def fetchbss(self,Nbs,Mbs,ens=None,stream=None,ens_id=None,bstype='draw'):
         if ens != None and stream != None:
             sql_cmd = "SELECT id FROM callat_corr.hisq_ensembles WHERE tag='%s' AND stream='%s';" %(ens,stream)

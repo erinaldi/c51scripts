@@ -56,11 +56,11 @@ gA_fit:
 
     ### 0.15 fm ###
     # 310 MeV
-    ens: {"tag":"l1648f211b580m013m065m838", "stream":"a"}
-    ml: 0.0158 # UT
+    #ens: {"tag":"l1648f211b580m013m065m838", "stream":"a"}
+    #ml: 0.0158 # UT
     ### for bootstrap
-    nbs: 0
-    mbs: 1960
+    #nbs: 0
+    #mbs: 1960
 
     ## 220 MeV
     #ens: {"tag":"l2448f211b580m0064m0640m828", "stream":"a"}
@@ -70,16 +70,16 @@ gA_fit:
     #mbs: 1000
 
     ## 135 MeV
-    #ens: {"tag":"l3248f211b580m00235m0647m831", "stream":"a"}
-    #ml: 0.00216 #UT
+    ens: {"tag":"l3248f211b580m00235m0647m831", "stream":"a"}
+    ml: 0.00216 #UT
     # for bootstrap
-    #nbs: 0
-    #mbs: 1000
+    nbs: 0
+    mbs: 1000
 
     # basak
-    basak: ['G1G1', 'G1G2', 'G1G3', 'G2G1', 'G2G2', 'G2G3', 'G3G1', 'G3G2', 'G3G3']
+    #basak: ['G1G1', 'G1G2', 'G1G3', 'G2G1', 'G2G2', 'G2G3', 'G3G1', 'G3G2', 'G3G3']
     #basak: ['G2G2', 'G2G3', 'G3G2', 'G3G3']
-    #basak: ['G1G1']
+    basak: ['G1G1']
     #basak: ['G1G1', 'G2G2', 'G3G3']
     #basak: ['G1G1', 'G1G2', 'G2G2', 'G2G1']
     # number of states fit to
