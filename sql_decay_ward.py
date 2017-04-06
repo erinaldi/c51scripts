@@ -118,11 +118,12 @@ def fit_decay_bs(psql,params,meson, gv_SS, gv_PS,bootn_fit=False,g=None):
     nstates = params['decay_ward_fit']['nstates']
     mesp = params[tag][meson]['%s_%s' %(str(mq1),str(mq2))]
     T = len(gv_SS)
+    print mesp
     # plot effective mass / scaled correlator
     if params['flags']['plot_data']:
         # unfolded correlator data
-        c51.scatter_plot(np.arange(len(gv_SS)), gv_SS, '%s_%s ss folded' %(str(mq1),str(mq2)))
-        c51.scatter_plot(np.arange(len(gv_PS)), gv_PS, '%s_%s ps folded' %(str(mq1),str(mq2)))
+        c51.scatter_plot(np.arange(len(gv_SS)), gv_SS, '%s %s' %(str(mq1),str(mq2)), '$t$', 'C(t)_{SS}')
+        c51.scatter_plot(np.arange(len(gv_PS)), gv_PS, '%s %s' %(str(mq1),str(mq2)), '$t$', 'C(t)_{PS}')
         plt.show()
         # effective mass
         eff = c51.effective_plots(T)
@@ -130,18 +131,19 @@ def fit_decay_bs(psql,params,meson, gv_SS, gv_PS,bootn_fit=False,g=None):
         meff_ps = eff.effective_mass(gv_PS, 1, 'cosh')
         xlim = [3, len(meff_ss)/2-2]
         ylim = c51.find_yrange(meff_ss, xlim[0], xlim[1])
-        c51.scatter_plot(np.arange(len(meff_ss)), meff_ss, '%s_%s ss effective mass' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
+        c51.scatter_plot(np.arange(len(meff_ss)), meff_ss, '%s %s' %(str(mq1),str(mq2)), '$t$', '$M^{eff}_{SS}$', xlim = xlim, ylim = ylim)
         ylim = c51.find_yrange(meff_ps, xlim[0], xlim[1])
-        c51.scatter_plot(np.arange(len(meff_ps)), meff_ps, '%s_%s ps effective mass' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
+        c51.scatter_plot(np.arange(len(meff_ps)), meff_ps, '%s %s' %(str(mq1),str(mq2)), '$t$', '$M^{eff}_{PS}$', xlim = xlim, ylim = ylim)
         plt.show()
         # scaled correlator
         E0 = mesp['priors'][1]['E0'][0]
+        print E0
         scaled_ss = np.sqrt(eff.scaled_correlator(gv_SS, E0, phase=1.0))
         scaled_ps = eff.scaled_correlator(gv_PS, E0, phase=1.0)/scaled_ss
         ylim = c51.find_yrange(scaled_ss, xlim[0], xlim[1])
-        c51.scatter_plot(np.arange(len(scaled_ss)), scaled_ss, '%s_%s ss scaled correlator (take sqrt to get Z0_s)' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
+        c51.scatter_plot(np.arange(len(scaled_ss)), scaled_ss, '%s %s' %(str(mq1),str(mq2)), '$t$', '$Z0_s$', xlim = xlim, ylim = ylim)
         ylim = c51.find_yrange(scaled_ps, xlim[0], xlim[1])
-        c51.scatter_plot(np.arange(len(scaled_ps)), scaled_ps, '%s_%s ps scaled correlator (divide by Z0_s to get Z0_p)' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
+        c51.scatter_plot(np.arange(len(scaled_ps)), scaled_ps, '%s %s' %(str(mq1),str(mq2)), '$t$', '$Z0_p$', xlim = xlim, ylim = ylim)
         plt.show()
     # concatenate data
     boot0gv = np.concatenate((gv_SS, gv_PS))
@@ -230,33 +232,38 @@ if __name__=='__main__':
     psql = sql.pysql('cchang5','cchang5',psqlpwd)
     # fit mres
     # ml mres
-    mpl, ppl = read_mres_bs(psql,params,fitmeta['ml'])
-    gv_mp, gv_pp = concatgv(mpl, ppl)
-    resl = fit_mres_bs(psql,params,fitmeta['ml'],gv_mp,gv_pp)
-    print resl['mres_fit']
+    if params['flags']['fit_ml']:
+        mpl, ppl = read_mres_bs(psql,params,fitmeta['ml'])
+        gv_mp, gv_pp = concatgv(mpl, ppl)
+        resl = fit_mres_bs(psql,params,fitmeta['ml'],gv_mp,gv_pp)
+        print resl['mres_fit']
     #buffdict = gv.BufferDict()
     #buffdict = res['mres_fit'].p
     # ms mres
-    #mps, pps = read_mres_bs(psql,params,fitmeta['ms'])
-    #gv_mp, gv_pp = concatgv(mps, pps)
-    #ress = fit_mres_bs(psql,params,fitmeta['ms'],gv_mp,gv_pp)
-    #print ress['mres_fit']
+    if params['flags']['fit_ms']:
+        mps, pps = read_mres_bs(psql,params,fitmeta['ms'])
+        gv_mp, gv_pp = concatgv(mps, pps)
+        ress = fit_mres_bs(psql,params,fitmeta['ms'],gv_mp,gv_pp)
+        print ress['mres_fit']
 
     ## bootstrap decay constant
     ## fit pion
-    SSpi, PSpi = read_decay_bs(psql,params,'pion')
-    gv_SS, gv_PS = concatgv(SSpi, PSpi)
-    resp = fit_decay_bs(psql,params,'pion', gv_SS, gv_PS)
-    print resp['meson_fit']
+    if params['flags']['fit_pion']:
+        SSpi, PSpi = read_decay_bs(psql,params,'pion')
+        gv_SS, gv_PS = concatgv(SSpi, PSpi)
+        resp = fit_decay_bs(psql,params,'pion', gv_SS, gv_PS)
+        print resp['meson_fit']
     ## fit kaon
-    #SSka, PSka = read_decay_bs(psql,params,'kaon')
-    #gv_SS, gv_PS = concatgv(SSka, PSka)
-    #resk = fit_decay_bs(psql,params,'kaon', gv_SS, gv_PS)
+    if params['flags']['fit_kaon']:
+        SSka, PSka = read_decay_bs(psql,params,'kaon')
+        gv_SS, gv_PS = concatgv(SSka, PSka)
+        resk = fit_decay_bs(psql,params,'kaon', gv_SS, gv_PS)
     ## fit etas
-    ##SS, PS = read_decay_bs(psql,params,'etas')
-    ##gv_SS, gv_PS = concatgv(SS, PS)
-    ##res = fit_decay_bs(psql,params,'etas', gv_SS, gv_PS)
-    ##print res['meson_fit']
+    if params['flags']['fit_etas']:
+        SSes, PSes = read_decay_bs(psql,params,'etas')
+        gv_SS, gv_PS = concatgv(SSes, PSes)
+        res = fit_decay_bs(psql,params,'etas', gv_SS, gv_PS)
+        print res['meson_fit']
     #
     ##print "decay constants"
     #fk = decay_constant(params, resk['meson_fit'].p['Z0_p'], resk['meson_fit'].p['E0'], resl['mres_fit'].p['mres'], ress['mres_fit'].p['mres']) / np.sqrt(2)

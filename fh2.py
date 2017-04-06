@@ -224,17 +224,6 @@ def fit_proton(psql,params,gvboot0,twopt=False):
             print "tmin, E0%s, +-, chi2dof%s, Q%s, logGBF%s" %(nstates, nstates, nstates, nstates)
             for i in range(len(boot0fit['tmin'])):
                 print '%s, %s, %s, %s, %s, %s' %(str(boot0fit['tmin'][i]), str(boot0fit['pmean'][i]['E0']), str(boot0fit['psdev'][i]['E0']), boot0fit['chi2'][i]/boot0fit['dof'][i], boot0fit['Q'][i], boot0fit['logGBF'][i])
-        # submit boot0 to db
-        if params['flags']['write']:
-            corr_lst = np.array([[barp['meta_id']['SS'][i] for i in params['gA_fit']['basak']],[barp['meta_id']['PS'][i] for i in params['gA_fit']['basak']]]).flatten()
-            fit_id = c51.select_fitid('baryon',nstates=nstates,basak=params['gA_fit']['basak'])
-            for t in range(len(boot0fit['tmin'])):
-                init_id = psql.initid(boot0fit['p0'][t])
-                prior_id = psql.priorid(boot0fit['prior'][t])
-                tmin = boot0fit['tmin'][t]
-                tmax = boot0fit['tmax'][t]
-                result = c51.make_result(boot0fit,t)
-                psql.submit_boot0('proton',corr_lst,fit_id,tmin,tmax,init_id,prior_id,result,params['flags']['update'])
         return {'nucleon_fit': boot0fit['rawoutput'][0]}
     return 0
 
@@ -441,26 +430,6 @@ def fit_gA(psql,params,gvboot0):
             for i in range(len(boot0fit['fhtmin'])):
                 gAgV = boot0fit['rawoutput'][i].p['gA00']/boot0fit['rawoutput'][i].p['gV00']
                 print '%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s' %(str(boot0fit['gVtmin'][i]), str(boot0fit['pmean'][i]['E0']), str(boot0fit['psdev'][i]['E0']), str(boot0fit['pmean'][i]['gA00']), str(boot0fit['psdev'][i]['gA00']), str(boot0fit['pmean'][i]['gV00']), str(boot0fit['psdev'][i]['gV00']), str(gAgV.mean), str(gAgV.sdev), boot0fit['chi2'][i]/boot0fit['dof'][i], boot0fit['Q'][i], boot0fit['logGBF'][i])
-        # submit boot0 to db
-        if params['flags']['write']:
-            corr_lst = np.array([[fhbp['meta_id']['SS'][i] for i in params['gA_fit']['basak']],[fhbp['meta_id']['PS'][i] for i in params['gA_fit']['basak']]]).flatten()
-            fit_id = c51.select_fitid('fhbaryon',nstates=nstates,tau=params['gA_fit']['tau'])
-            for t in range(len(boot0fit['tmin'])):
-                baryon_corr_lst = np.array([[barp['meta_id']['SS'][i] for i in params['gA_fit']['basak']],[barp['meta_id']['PS'][i] for i in params['gA_fit']['basak']]]).flatten()
-                baryon_fit_id = c51.select_fitid('baryon',nstates=nstates,basak=params['gA_fit']['basak'])
-                baryon_tmin = trange['tmin'][0]
-                baryon_tmax = trange['tmax'][0]
-                baryon_p0 = {k: boot0fit['p0'][0][k] for k in [bk for n in range(nstates) for bk in barp['priors'][n+1].keys()]}
-                baryon_init_id = psql.initid(baryon_p0)
-                baryon_prior_id = psql.priorid(c51.dict_of_tuple_to_gvar(c51.baryon_priors(barp['priors'],basak,nstates)))
-                baryon_id = psql.select_boot0("proton", baryon_corr_lst, baryon_fit_id, baryon_tmin, baryon_tmax, baryon_init_id, baryon_prior_id)
-                init_id = psql.initid(boot0fit['p0'][t])
-                prior_id = psql.priorid(boot0fit['prior'][t])
-                tmin = boot0fit['fhtmin'][t]
-                tmax = boot0fit['fhtmax'][t]
-                result = c51.make_result(boot0fit,t)
-                print tmin, tmax
-                psql.submit_fhboot0('fhproton',corr_lst,baryon_id,fit_id,tmin,tmax,init_id,prior_id,result,params['flags']['update'])
         if params['flags']['csvformat']:
             for t in range(len(boot0fit['fhtmin'])):
                 print nstates,',',boot0fit['tmin'][t],',',boot0fit['tmax'][t],',',boot0fit['fhtmin'][t],',',boot0fit['fhtmax'][t],',',boot0fit['pmean'][t]['gA00'],',',boot0fit['psdev'][t]['gA00'],',',(np.array(boot0fit['chi2'])/np.array(boot0fit['dof']))[t],',',(np.array(boot0fit['chi2'])/np.array(boot0fit['chi2f']))[t],',',boot0fit['logGBF'][t]

@@ -242,11 +242,7 @@ class effective_plots:
         return meff
     # scaled two point
     def scaled_correlator(self, twopt, E0, phase=1.0):
-        scaled2pt = []
-        for t in range(len(twopt)):
-            scaled2pt.append(twopt[t]*2.*E0/(np.exp(-E0*t)))
-        scaled2pt = np.array(scaled2pt)
-        return scaled2pt
+        return twopt*2.*float(E0)/(np.exp(-float(E0)*np.arange(len(twopt))))
     def scaled_correlator_v2(self, twopt, E0, phase=1.0):
         scaled2pt = []
         for t in range(len(twopt)):
@@ -1011,19 +1007,19 @@ class fit_function():
     # two point smear smear source sink
     def twopt_fitfcn_ss(self, t, p):
         En = p['E0']
-        fitfcn = p['Z0_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t))) 
+        fitfcn = p['Z0_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t))) / (2*En) 
         for n in range(1, self.nstates):
             En += np.exp(p['E'+str(n)])
-            fitfcn += p['Z'+str(n)+'_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)))
+            fitfcn += p['Z'+str(n)+'_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t))) / (2*En)
         return fitfcn
     # two point point smear source sink
     def twopt_fitfcn_ps(self, t, p):
         En = p['E0']
         En_p = 0
-        fitfcn = p['Z0_p']*p['Z0_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) )
+        fitfcn = p['Z0_p']*p['Z0_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) ) / (2*En)
         for n in range(1, self.nstates):
             En += np.exp(p['E'+str(n)])
-            fitfcn += p['Z'+str(n)+'_p']*p['Z'+str(n)+'_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) )
+            fitfcn += p['Z'+str(n)+'_p']*p['Z'+str(n)+'_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) ) / (2*En)
         return fitfcn
     def twopt_fitfcn_pp(self, t, p):
         En = p['E0']
@@ -1250,14 +1246,17 @@ class fit_function():
 def scatter_plot(x, data_gv, title='default title', xlabel='x', ylabel='y', xlim=[None,None], ylim=[None,None], grid_flg=True):
     y = np.array([dat.mean for dat in data_gv])
     e = np.array([dat.sdev for dat in data_gv])
-    plt.figure()
-    plt.errorbar(x, y, yerr=e)
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.xlim(xlim[0], xlim[1])
-    plt.ylim(ylim[0], ylim[1])
-    plt.grid(grid_flg)
+    fig = plt.figure(figsize=(7,4.326237))
+    ax = plt.axes([0.15,0.15,0.8,0.8])
+    ax.errorbar(x, y, yerr=e)
+    ax.set_title(title,fontdict={'fontsize':15,'verticalalignment':'top','horizontalalignment':'left'},x=0.05,y=0.9)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.xaxis.set_tick_params(labelsize=15)
+    ax.yaxis.set_tick_params(labelsize=15)
+    ax.set_xlim(xlim[0], xlim[1])
+    ax.set_ylim(ylim[0], ylim[1])
+    #ax.grid(grid_flg)
     plt.draw()
     return 0
 
