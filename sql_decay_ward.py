@@ -103,7 +103,7 @@ def read_decay_bs(psql,params,meson):
     PS = c51.fold(psql.data('dwhisq_corr_meson',mesp['meta_id']['PS']))
     return SS, PS
 
-def fit_decay_bs(psql,params,meson, gv_SS, gv_PS,bootn_fit=False,g=None):
+def fit_decay_bs(psql,params,meson, gv_SS, gv_PS,bootn_fit=False,g=None,flow=False):
     if meson=='pion':
         mq1 = params['decay_ward_fit']['ml']
         mq2 = mq1
@@ -118,7 +118,6 @@ def fit_decay_bs(psql,params,meson, gv_SS, gv_PS,bootn_fit=False,g=None):
     nstates = params['decay_ward_fit']['nstates']
     mesp = params[tag][meson]['%s_%s' %(str(mq1),str(mq2))]
     T = len(gv_SS)
-    print mesp
     # plot effective mass / scaled correlator
     if params['flags']['plot_data']:
         # unfolded correlator data
@@ -138,8 +137,8 @@ def fit_decay_bs(psql,params,meson, gv_SS, gv_PS,bootn_fit=False,g=None):
         # scaled correlator
         E0 = mesp['priors'][1]['E0'][0]
         print E0
-        scaled_ss = np.sqrt(eff.scaled_correlator(gv_SS, E0, phase=1.0))
-        scaled_ps = eff.scaled_correlator(gv_PS, E0, phase=1.0)/scaled_ss
+        scaled_ss = np.sqrt(eff.scaled_correlator_v2(gv_SS, E0, phase=1.0))
+        scaled_ps = eff.scaled_correlator_v2(gv_PS, E0, phase=1.0)/scaled_ss
         ylim = c51.find_yrange(scaled_ss, xlim[0], xlim[1])
         c51.scatter_plot(np.arange(len(scaled_ss)), scaled_ss, '%s %s' %(str(mq1),str(mq2)), '$t$', '$Z0_s$', xlim = xlim, ylim = ylim)
         ylim = c51.find_yrange(scaled_ps, xlim[0], xlim[1])
@@ -173,8 +172,10 @@ def fit_decay_bs(psql,params,meson, gv_SS, gv_PS,bootn_fit=False,g=None):
     # fit boot0
     boot0p = c51.dict_of_tuple_to_gvar(prior)
     fitfcn = c51.fit_function(T,params['decay_ward_fit']['nstates'])
-    boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.twopt_fitfcn_ss_ps,init=init,bayes=params['flags']['bayes'])
-    #boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.dwhisq_twopt_osc_ss_ps)
+    if flow:
+        boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.dwhisq_twopt_osc_ss_ps,bayes=params['flags']['bayes'])
+    else:
+        boot0fit = c51.fitscript_v2(trange,T,boot0gv,boot0p,fitfcn.twopt_fitfcn_ss_ps,init=init,bayes=params['flags']['bayes'])
     #print boot0fit['rawoutput'][0]
     if params['flags']['boot0_update']:
         post = boot0fit['rawoutput'][0].pmean

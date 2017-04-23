@@ -317,10 +317,12 @@ def fit_gA(psql,params,gvboot0):
         fhtrange = fhbp['trange']
         gVtrange = gVbp['trange']
         # fit boot0
-        boot0gv = np.concatenate((spec,dM,gVdM))
+        boot0gv = np.concatenate((spec,dM,gVdM)) # dM
+        #boot0gv = gvboot0 # fh
         boot0p = c51.dict_of_tuple_to_gvar(prior)
         fitfcn = c51.fit_function(T,nstates,fhstates,gVstates,tau)
-        boot0fit = c51.fitscript_v4(trange,fhtrange,gVtrange,T,boot0gv,boot0p,fitfcn.dwhisq_dm_gVdm_ss_ps,basak=params['gA_fit']['basak'],init=init,bayes=params['flags']['bayes'])
+        boot0fit = c51.fitscript_v4(trange,fhtrange,gVtrange,T,boot0gv,boot0p,fitfcn.dwhisq_dm_gVdm_ss_ps,basak=params['gA_fit']['basak'],init=init,bayes=params['flags']['bayes']) # dM
+        #boot0fit = c51.fitscript_v4(trange,fhtrange,gVtrange,T,boot0gv,boot0p,fitfcn.dwhisq_fh_gVfh_ss_ps,basak=params['gA_fit']['basak'],init=init,bayes=params['flags']['bayes'])
         if params['flags']['rawoutput']:
             print boot0fit['rawoutput'][0]
         if params['flags']['fitline_plot']:

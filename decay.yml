@@ -47,26 +47,27 @@ decay_ward_fit:
     #ml: 0.00712 # UT
 
     ## 135 MeV
-    ens: {"tag":"l3248f211b580m00235m0647m831", "stream":"a"}
-    ml: 0.00216 #UT
+    #ens: {"tag":"l3248f211b580m00235m0647m831", "stream":"a"}
+    #ml: 0.00216 #UT
 
     # number of states fit to
     nstates: 2
 
     # bootstrap
     nbsmin: 0
-    nbs: 1000
+    nbs: 5000
     mbs: False
 
-    #fit_id: 9 # Bayes 2 state SS + PS
-    fit_id: 49 # Bayes 2 state SS + PS with / 2E normalization
+    mres_fit_id: 1
+    meson_fit_id: 9 # Bayes 2 state SS + PS
+    #meson_fit_id: 49 # Bayes 2 state SS + PS with / 2E normalization
     
     # autocorrelation
     bin: 1
 
 flags:
     # fitter flags (True/False)
-    plot_data:   True
+    plot_data:   False
     fit_ml:      True
     fit_ms:      False
     fit_pion:    True
@@ -79,10 +80,10 @@ flags:
     csvformat: False
     rawoutput: False
 
-    bootstrap:   False
+    bootstrap:   True
     bootn_mresl: False
     bootn_mress: False
-    bootn_pion:  False
+    bootn_pion:  True
     bootn_kaon:  False
     bootn_etas:  False
 
@@ -165,36 +166,18 @@ l2464f211b600m0170m0509m635:
 
 # 350 MeV
 l2464f211b600m0130m0509m635:
-    proton:
+    mres:
         0.0166:
-            meta_id: {"SS": {"G1G1": 53}, "PS": {"G1G1": 54}}
+            meta_id: {"mp": 81, "pp": 82}
+            priors: {'mres': [7.7E-4, 7.7E-5]}
+            trange: {"tmin": [8,8], "tmax": [56,56]}
+    pion:
+        0.0166_0.0166:
+            meta_id: {"SS": 185, "PS": 186}
             priors:
-                1: {"E0": [0.69, 0.069], "G1_Z0s":[2.6E-4, 1.3E-4], "G1_Z0p":[6E-3, 3E-3]}
-                2: {"E1":  [-0.85, 0.7], "G1_Z1s":   [0.0, 1.3E-4], "G1_Z1p": [0.0, 6E-3]}
-                3: {"E2":  [-0.85, 0.7], "G1_Z2s":   [0.0, 1.3E-4], "G1_Z2p": [0.0, 6E-3]}
-            trange: {"tmin": [3,3], "tmax": [14,14]}
-    gA:
-        0.0166:
-            meta_id:
-                     {"SS": {"G1G1": 89}, "PS": {"G1G1": 90}}
-            priors:
-                c0: {"G1_G1_D0ss": [-4E-8, 4E-8], "G1_G1_D0ps": [-1E-6, 1E-6]}
-                c1: {"G1_G1_D1ss":   [0.0, 4E-8], "G1_G1_D1ps":   [0.0, 1E-6]}
-                c2: {"G1_G1_D2ss":   [0.0, 4E-8], "G1_G1_D2ps":   [0.0, 1E-6]}
-                1: {"gA00": [1.2, 0.5]}
-                2: {"gA10": [0.0, 1.0], "gA11": [0.0, 1.0]}
-                3: {"gA20": [0.0, 1.0], "gA21": [0.0, 1.0], "gA22": [0.0, 1.0]}
-            trange: {"tmin": [2,2], "tmax": [8, 8]}
-    gV:
-        0.0166:
-            meta_id:
-                     {"SS": {"G1G1": 91}, "PS": {"G1G1": 92}}
-            priors:
-                c0: {"G1_G1_C0ss": [5E-8, 5E-8], "G1_G1_C0ps": [1E-6, 1E-6]}
-                c1: {"G1_G1_C1ss":  [0.0, 5E-8], "G1_G1_C1ps":  [0.0, 1E-6]}
-                1: {"gV00": [1.0, 0.5]}
-                2: {"gV10": [0.0, 10.0], "gV11": [0.0, 10.0]}
-            trange: {"tmin": [4,4], "tmax": [14, 14]}
+                1: {"E0": [0.214, 0.0214], "Z0_s": [1.9E-2, 1.9E-3], "Z0_p": [1.8E-1, 1.8E-2]}
+                2: {"E1":  [-0.85, 0.7],     "Z1_s":    [0.0, 1E-2], "Z1_p":    [0.0, 1.8E-1]}
+            trange: {"tmin": [7,7], "tmax": [30, 30]}
 
 # 310 MeV
 l2464f211b600m0102m0509m635:

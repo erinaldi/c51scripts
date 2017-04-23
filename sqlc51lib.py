@@ -244,11 +244,7 @@ class effective_plots:
     def scaled_correlator(self, twopt, E0, phase=1.0):
         return twopt*2.*float(E0)/(np.exp(-float(E0)*np.arange(len(twopt))))
     def scaled_correlator_v2(self, twopt, E0, phase=1.0):
-        scaled2pt = []
-        for t in range(len(twopt)):
-            scaled2pt.append(twopt[t]/(np.exp(-E0*t)))
-        scaled2pt = np.array(scaled2pt)
-        return scaled2pt
+        return twopt/(np.exp(-float(E0)*np.arange(len(twopt))))
 
 def dict_of_tuple_to_gvar(dictionary):
     prior = dict()
@@ -651,7 +647,7 @@ class fit_function():
             for m in range(1,n,2):
                 En += np.exp(p['E%s' %(m+2)])
             return En
-    def dwhisq_fh(self,t,p,b,snk,src,gV):
+    def dwhisq_fh(self,t,p,b,snk,src,gV=False):
         bsrc = b[:2]
         bsnk = b[2:]
         M = 0
@@ -779,6 +775,46 @@ class fit_function():
             gVdmps = np.concatenate((gVdmps,gVdmpsl[i]))
         # concatenate
         fitfcn = np.concatenate((ss,ps,dmss,dmps,gVdmss,gVdmps))
+        return fitfcn
+    def dwhisq_fh_gVfh_ss_ps(self,t,p):
+        x2 = t['indep'][0]
+        fhx = t['indep'][1]
+        gVx = t['indep'][2]
+        # two point
+        ssl = []
+        psl = []
+        for b in t['basak']:
+            ssl.append(self.dwhisq_twopt(x2,p,b,'s','s'))
+            psl.append(self.dwhisq_twopt(x2,p,b,'p','s'))
+        ss = ssl[0]
+        ps = psl[0]
+        for i in range(len(ssl)-1):
+            ss = np.concatenate((ss,ssl[i+1]))
+            ps = np.concatenate((ps,psl[i+1]))
+        # gA
+        fhssl = []
+        fhpsl = []
+        for b in t['basak']:
+            fhssl.append(self.dwhisq_fh(fhx,p,b,'s','s'))
+            fhpsl.append(self.dwhisq_fh(fhx,p,b,'p','s'))
+        fhss = fhssl[0]
+        fhps = fhpsl[0]
+        for i in range(1,len(fhssl)):
+            fhss = np.concatenate((fhss,fhssl[i]))
+            fhps = np.concatenate((fhps,fhpsl[i]))
+        # gV
+        gVfhssl = []
+        gVfhpsl = []
+        for b in t['basak']:
+            gVfhssl.append(self.dwhisq_fh(gVx,p,b,'s','s',True))
+            gVfhpsl.append(self.dwhisq_fh(gVx,p,b,'p','s',True))
+        gVfhss = gVfhssl[0]
+        gVfhps = gVfhpsl[0]
+        for i in range(1,len(fhssl)):
+            gVfhss = np.concatenate((gVfhss,gVfhssl[i]))
+            gVfhps = np.concatenate((gVfhps,gVfhpsl[i]))
+        # concatenate
+        fitfcn = np.concatenate((ss,ps,fhss,fhps,gVfhss,gVfhps))
         return fitfcn
     def dwhisq_axial(self,t,p):
         C = 0
@@ -1007,19 +1043,19 @@ class fit_function():
     # two point smear smear source sink
     def twopt_fitfcn_ss(self, t, p):
         En = p['E0']
-        fitfcn = p['Z0_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t))) / (2*En) 
+        fitfcn = p['Z0_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t))) #/ (2*En) 
         for n in range(1, self.nstates):
             En += np.exp(p['E'+str(n)])
-            fitfcn += p['Z'+str(n)+'_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t))) / (2*En)
+            fitfcn += p['Z'+str(n)+'_s']**2 * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t))) #/ (2*En)
         return fitfcn
     # two point point smear source sink
     def twopt_fitfcn_ps(self, t, p):
         En = p['E0']
         En_p = 0
-        fitfcn = p['Z0_p']*p['Z0_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) ) / (2*En)
+        fitfcn = p['Z0_p']*p['Z0_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) ) #/ (2*En)
         for n in range(1, self.nstates):
             En += np.exp(p['E'+str(n)])
-            fitfcn += p['Z'+str(n)+'_p']*p['Z'+str(n)+'_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) ) / (2*En)
+            fitfcn += p['Z'+str(n)+'_p']*p['Z'+str(n)+'_s'] * (np.exp(-1*En*t) + np.exp(-1*En*(self.T-t)) ) #/ (2*En)
         return fitfcn
     def twopt_fitfcn_pp(self, t, p):
         En = p['E0']

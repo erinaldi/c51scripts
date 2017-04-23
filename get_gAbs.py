@@ -3,19 +3,21 @@ sys.path.append('$HOME/c51/scripts/')
 import calsql as sql
 import password_file as pwd
 import numpy as np
+import tqdm
+import gvar as gv
 
 def select_data():
     # Full ensembles
-    data_idx = {'l1648f211b580m013m065m838':    {'gA': 186, 'mpi': 47, 'mres': 26, 'mju': 13, 'mbs': 1960},
-                'l2448f211b580m0064m0640m828':  {'gA': 162, 'mpi': 48, 'mres': 27, 'mju': 11, 'mbs': 1000},
-                'l3248f211b580m00235m0647m831': {'gA': 9,   'mpi': 40, 'mres': 20, 'mju': 12, 'mbs': 1000},
-                'l2464f211b600m0102m0509m635':  {'gA': 3,   'mpi': 27, 'mres': 29, 'mju': 5,  'mbs': 1053},
-                'l2464f211b600m00507m0507m628': {'gA': 43,  'mpi': 46, 'mres': 25, 'mju': 6,  'mbs': 1000}, #mju from 3264
-                'l3264f211b600m00507m0507m628': {'gA': 7,   'mpi': 26, 'mres': 13, 'mju': 6,  'mbs': 1000},
-                'l4064f211b600m00507m0507m628': {'gA': 47,  'mpi': 45, 'mres': 24, 'mju': 6,  'mbs': 1000}, #mju from 3264
-                #'l4864f211b600m00184m0507m628': {'gA': 11,  'mpi': 24, 'mres': 14, 'mju': 10, 'mbs': 1000},
-                'l3296f211b630m0074m037m440':   {'gA': 126, 'mpi': 49, 'mres': 28, 'mju': 1,  'mbs': 784}}
-                #'l4896f211b630m00363m0363m430': {'gA': 8,   'mpi': 28, 'mres': 11, 'mju': ,  'mbs': 1001}} #need mju
+    #data_idx = {'l1648f211b580m013m065m838':    {'gA': 186, 'mpi': 47, 'mres': 26, 'mju': 13, 'mbs': 1960},
+    #            'l2448f211b580m0064m0640m828':  {'gA': 162, 'mpi': 48, 'mres': 27, 'mju': 11, 'mbs': 1000},
+    #            'l3248f211b580m00235m0647m831': {'gA': 9,   'mpi': 40, 'mres': 20, 'mju': 12, 'mbs': 1000},
+    #            'l2464f211b600m0102m0509m635':  {'gA': 3,   'mpi': 27, 'mres': 29, 'mju': 5,  'mbs': 1053},
+    #            'l2464f211b600m00507m0507m628': {'gA': 43,  'mpi': 46, 'mres': 25, 'mju': 6,  'mbs': 1000}, #mju from 3264
+    #            'l3264f211b600m00507m0507m628': {'gA': 7,   'mpi': 26, 'mres': 13, 'mju': 6,  'mbs': 1000},
+    #            'l4064f211b600m00507m0507m628': {'gA': 47,  'mpi': 45, 'mres': 24, 'mju': 6,  'mbs': 1000}, #mju from 3264
+    #            'l4864f211b600m00184m0507m628': {'gA': 11,  'mpi': 24, 'mres': 14, 'mju': 10, 'mbs': 1000},
+    #            'l3296f211b630m0074m037m440':   {'gA': 126, 'mpi': 49, 'mres': 28, 'mju': 1,  'mbs': 784},
+    #            'l4896f211b630m00363m0363m430': {'gA': 8,   'mpi': 28, 'mres': 11, 'mju': 1,  'mbs': 1001}} #need mju
     
     # PRD
     #data_idx = {'l1648f211b580m013m065m838':    {'gA': 71, 'mpi': 43, 'mres': 21},
@@ -26,6 +28,8 @@ def select_data():
     #            'l3264f211b600m00507m0507m628': {'gA': 7,  'mpi': 26, 'mres': 13},
     #            'l4064f211b600m00507m0507m628': {'gA': 47, 'mpi': 45, 'mres': 24},
     #            'l3296f211b630m0074m037m440':   {'gA': 5,  'mpi': 29, 'mres': 1}}
+    
+    data_idx = {'l4864f211b600m00184m0507m628': {'gA0': 256, 'gA1': 265, 'gA2': 266, 'mbs': 1000}}
     return data_idx
 
 
@@ -98,6 +102,62 @@ def get_bootstrap():
         data['a2DI'][e] = a2di
     return data
 
+def get_bootstrap_list():
+    psqlpwd = pwd.passwd()
+    psql = sql.pysql('cchang5','cchang5',psqlpwd)
+    # get data
+    data_idx = select_data()
+    for ens in data_idx.keys():
+        sqlcmd = "SELECT draws FROM callat_corr.hisq_bootstrap bs JOIN callat_corr.hisq_ensembles e ON bs.hisq_ensembles_id=e.id WHERE e.tag='%s' ORDER BY nbs LIMIT 500;" %ens
+        psql.cur.execute(sqlcmd)
+        nbs = psql.cur.fetchall()
+        nbs = np.array([np.array(nbs[i][0])[:len(nbs[0][0])] for i in range(len(nbs))])
+        s = ''
+        for i in tqdm.tqdm(range(len(nbs))):
+            for j in range(len(nbs[0])):
+                if j == len(nbs[0])-1:
+                    s += '%s' %nbs[i,j]
+                else:
+                    s += '%s,' %nbs[i,j]
+            s += '\n'
+        with open('./nbslist/nbs_%s.csv' %ens, 'w+') as f:
+            f.write(s)
+    return 
+
+def get_systematic():
+    psqlpwd = pwd.passwd()
+    psql = sql.pysql('cchang5','cchang5',psqlpwd)
+    # get data
+    data_idx = select_data()
+    ens = data_idx.keys()[0]
+    l = []
+    for n in range(len(data_idx[ens].keys())-1):
+        # read gA and gV
+        sqlcmd = "SELECT (result->>'gA00')::double precision / (result->>'gV00')::double precision FROM callat_proj.ga_v1_bs g JOIN callat_corr.hisq_bootstrap b ON g.bs_id=b.id WHERE g.ga_v1_id=%s AND mbs=%s ORDER BY nbs;" %(data_idx[ens]['gA%s' %n],data_idx[ens]['mbs'])
+        psql.cur.execute(sqlcmd)
+        gA = np.array(psql.cur.fetchall()).flatten()
+        l.append(gA)
+    l = np.array(l).T
+    lgv = gv.dataset.avg_data(l,spread=True,median=False)
+    #print lgv
+    print np.mean(lgv)
+    b0 = l[0,:]
+    b0mean = np.mean(b0)
+    #print b0mean
+    cov = np.cov(l,rowvar=False)
+    #print np.std(l,axis=0)
+    SA = np.einsum('ij,j->i', cov,np.ones(len(b0)))
+    #print SA
+    ASA = np.einsum('i,i->', np.ones(len(b0)),SA)
+    #print ASA
+    print b0mean, np.sqrt(ASA)/len(b0)
+
+    
+
 if __name__=="__main__":
-    data = get_bootstrap()
-    print data['aw0']
+    #data = get_bootstrap()
+    #print data['aw0']
+
+    #nbs = get_bootstrap_list()
+
+    sys = get_systematic()

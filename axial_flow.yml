@@ -1,0 +1,303 @@
+#parameter file for decay constant fits
+decay_ward_fit:
+    ### 0.09 fm ###
+    ## 310 MeV
+    #ens: {"tag":"l3296f211b630m0074m037m440", "stream":"e"}
+    #ml: 0.00951 # UT
+
+    ## 220 MeV
+    #ens: {"tag":"l4896f211b630m00363m0363m430", "stream":"a"}
+    #ml: 0.00449 # UT
+
+    ### 0.12 fm ###
+    ## 400 MeV
+    #ens: {"tag":"l2464f211b600m0170m0509m635", "stream":"a"}
+    #ml: 0.0219
+    
+    ## 350 MeV
+    #ens: {"tag":"l2464f211b600m0130m0509m635", "stream":"a"}
+    #ml: 0.0166
+
+    ## 310 MeV
+    #ens: {"tag":"l2464f211b600m0102m0509m635", "stream":"a"}
+    #ml: 0.0126 # UT
+
+    ## 220MeV
+    # small volume
+    #ens: {"tag":"l2464f211b600m00507m0507m628", "stream":"a"}
+    #ml: 0.00600 # UT
+    # medium volume
+    #ens: {"tag":"l3264f211b600m00507m0507m628", "stream":"a"}
+    #ml: 0.00600 # UT
+    # large volume
+    #ens: {"tag":"l4064f211b600m00507m0507m628", "stream":"a"}
+    #ml: 0.00600 # UT
+
+    ## 135MeV
+    #ens: {"tag":"l4864f211b600m00184m0507m628", "stream":"a"}
+    #ml: 0.00195 # UT
+
+    ### 0.15 fm ###
+    # 310 MeV
+    #ens: {"tag":"l1648f211b580m013m065m838", "stream":"a"}
+    #ml: 0.0158 # UT
+
+    ## 220 MeV
+    #ens: {"tag":"l2448f211b580m0064m0640m828", "stream":"a"}
+    #ml: 0.00712 # UT
+
+    ## 135 MeV
+    #ens: {"tag":"l3248f211b580m00235m0647m831", "stream":"a"}
+    #ml: 0.00216 #UT
+
+    # number of states fit to
+    nstates: 2
+
+    # bootstrap
+    nbsmin: 0
+    nbs: 5000
+    mbs: False
+
+    mres_fit_id: 1
+    meson_fit_id: 9 # Bayes 2 state SS + PS
+    #meson_fit_id: 49 # Bayes 2 state SS + PS with / 2E normalization
+    
+    # autocorrelation
+    bin: 1
+
+flags:
+    # fitter flags (True/False)
+    plot_data:   False
+    fit_ml:      True
+    fit_ms:      False
+    fit_pion:    True
+    fit_kaon:    False
+    fit_etas:    False
+
+    stability_plot: True 
+    tabulate: True 
+    fitline_plot: True
+    csvformat: False
+    rawoutput: False
+
+    bootstrap:   True
+    bootn_mresl: False
+    bootn_mress: False
+    bootn_pion:  True
+    bootn_kaon:  False
+    bootn_etas:  False
+
+    boot0_update: True
+    bayes: True
+
+############################
+##### a = 0.09fm ###########
+############################
+
+# 310 MeV
+l3296f211b630m0074m037m440:
+    mres:
+        0.00951:
+            meta_id: {"mp": 53, "pp": 54}
+            priors: {'mres': [2.7E-4, 1.3E-4]}
+            trange: {"tmin": [3,3], "tmax": [94,94]}
+    pion:
+        0.00951_0.00951:
+            meta_id: {"SS": 105, "PS": 106}
+            priors:
+                1: {"E0": [0.14, 0.014], "Z0_s": [2.5E-3, 2.5E-4], "Z0_p": [6.4E-2, 6.4E-3]}
+                2: {"E1":  [-1.26, 0.7], "Z1_s":   [0.0, 1.25E-2], "Z1_p":    [0.0, 6.4E-1]}
+            trange: {"tmin": [7,7], "tmax": [45, 45]}
+
+# 220 MeV
+l4896f211b630m00363m0363m430:
+    mres:
+        0.00449:
+            meta_id: {"mp": 17, "pp": 18}
+            priors: {'mres': [1.7E-4, 8E-5]}
+            trange: {"tmin": [3,3], "tmax": [94,94]}
+    pion:
+        0.00449_0.00449:
+            meta_id: {"SS": 33, "PS": 34}
+            priors:
+                1: {"E0": [9.8E-2, 9.8E-3], "Z0_s": [1.71E-3, 1.71E-4], "Z0_p": [6.26E-2, 6.26E-3]}
+                2: {"E1":  [-1.6, 0.7],     "Z1_s":      [0.0, 8.5E-3], "Z1_p":     [0.0, 6.26E-1]}
+            trange: {"tmin": [7,7], "tmax": [45, 45]}
+
+############################
+##### a = 0.12fm ###########
+############################
+# 400 MeV
+l2464f211b600m0170m0509m635:
+    proton:
+        0.0219:
+            meta_id: {"SS": {"G1G1": 55}, "PS": {"G1G1": 56}}
+            priors:
+                1: {"E0": [0.71, 0.071], "G1_Z0s":[2.6E-4, 1.3E-4], "G1_Z0p":[6E-3, 3E-3]}
+                2: {"E1":  [-0.85, 0.7], "G1_Z1s":   [0.0, 1.3E-4], "G1_Z1p": [0.0, 6E-3]}
+                3: {"E2":  [-0.85, 0.7], "G1_Z2s":   [0.0, 1.3E-4], "G1_Z2p": [0.0, 6E-3]}
+                4: {"E3":  [-0.85, 0.7], "G1_Z3s":   [0.0, 1.3E-4], "G1_Z3p": [0.0, 6E-3]}
+                5: {"E4":  [-0.85, 0.7], "G1_Z4s":   [0.0, 1.3E-4], "G1_Z4p": [0.0, 6E-3]}
+            trange: {"tmin": [3,3], "tmax": [14,14]}
+    gA:
+        0.0219:
+            meta_id:
+                     {"SS": {"G1G1": 93}, "PS": {"G1G1": 94}}
+            priors:
+                c0: {"G1_G1_D0ss": [-3E-8, 3E-8], "G1_G1_D0ps": [-1E-6, 1E-6]}
+                c1: {"G1_G1_D1ss":   [0.0, 3E-8], "G1_G1_D1ps":   [0.0, 1E-6]}
+                c2: {"G1_G1_D2ss":   [0.0, 3E-8], "G1_G1_D2ps":   [0.0, 1E-6]}
+                1: {"gA00": [1.2, 0.5]}
+                2: {"gA10": [0.0, 1.0], "gA11": [0.0, 1.0]}
+                3: {"gA20": [0.0, 1.0], "gA21": [0.0, 1.0], "gA22": [0.0, 1.0]}
+            trange: {"tmin": [4,4], "tmax": [12, 12]}
+    gV:
+        0.0219:
+            meta_id:
+                     {"SS": {"G1G1": 95}, "PS": {"G1G1": 96}}
+            priors:
+                c0: {"G1_G1_C0ss": [5E-8, 5E-8], "G1_G1_C0ps": [1E-6, 1E-6]}
+                c1: {"G1_G1_C1ss":  [0.0, 5E-8], "G1_G1_C1ps":  [0.0, 1E-6]}
+                c2: {"G1_G1_C2ss":  [0.0, 5E-8], "G1_G1_C2ps":  [0.0, 1E-6]}
+                1: {"gV00": [-1.0, 0.5]}
+                2: {"gV10": [0.0, 1.0], "gV11": [0.0, 1.0]}
+                3: {"gV20": [0.0, 1.0], "gV21": [0.0, 1.0], "gV22": [0.0, 1.0]}
+            trange: {"tmin": [7,7], "tmax": [14, 14]}
+
+# 350 MeV
+l2464f211b600m0130m0509m635:
+    mres:
+        0.0166:
+            meta_id: {"mp": 81, "pp": 82}
+            priors: {'mres': [7.7E-4, 7.7E-5]}
+            trange: {"tmin": [8,8], "tmax": [56,56]}
+    pion:
+        0.0166_0.0166:
+            meta_id: {"SS": 185, "PS": 186}
+            priors:
+                1: {"E0": [0.214, 0.0214], "Z0_s": [1.9E-2, 1.9E-3], "Z0_p": [1.8E-1, 1.8E-2]}
+                2: {"E1":  [-0.85, 0.7],     "Z1_s":    [0.0, 1E-2], "Z1_p":    [0.0, 1.8E-1]}
+            trange: {"tmin": [7,7], "tmax": [30, 30]}
+
+# 310 MeV
+l2464f211b600m0102m0509m635:
+    mres:
+        0.0126:
+            meta_id: {"mp": 65, "pp": 66}
+            priors: {'mres': [7.7E-4, 7.7E-5]}
+            trange: {"tmin": [8,8], "tmax": [56,56]}
+    pion:
+        0.0126_0.0126:
+            meta_id: {"SS": 9, "PS": 10}
+            priors:
+                1: {"E0": [0.19, 0.019], "Z0_s": [1.25E-2, 1.25E-3], "Z0_p": [1.17E-1, 1.17E-2]}
+                2: {"E1":  [-0.97, 0.7],     "Z1_s":    [0.0, 6E-2], "Z1_p":        [0.0, 1.17]}
+            trange: {"tmin": [7,7], "tmax": [30, 30]}
+
+# 220 MeV
+# large volume
+l4064f211b600m00507m0507m628:
+    mres:
+        0.00600:
+            meta_id: {"mp": 41, "pp": 42}
+            priors: {'mres': [4E-4, 4E-5]}
+            trange: {"tmin": [8,8], "tmax": [56,56]}
+    pion:
+        0.006_0.006:
+            meta_id: {"SS": 81, "PS": 82}
+            priors:
+                1: {"E0": [0.134, 0.0134], "Z0_s": [6E-3, 6E-4], "Z0_p": [1.17E-1, 1.17E-2]}
+                2: {"E1":  [-1.3, 0.7],     "Z1_s":[0.0, 3E-2], "Z1_p":        [0.0, 1.17]}
+            trange: {"tmin": [7,7], "tmax": [30, 30]}
+
+# medium volume
+l3264f211b600m00507m0507m628:
+    mres:
+        0.00600:
+            meta_id: {"mp": 25, "pp": 26}
+            priors: {'mres': [4E-4, 4E-5]}
+            trange: {"tmin": [8,8], "tmax": [56,56]}
+    pion:
+        0.006_0.006:
+            meta_id: {"SS": 49, "PS": 50}
+            priors:
+                1: {"E0": [0.134, 0.0134], "Z0_s": [6E-3, 6E-4], "Z0_p": [1.17E-1, 1.17E-2]}
+                2: {"E1":  [-1.3, 0.7],     "Z1_s":[0.0, 3E-2], "Z1_p":        [0.0, 1.17]}
+            trange: {"tmin": [7,7], "tmax": [30, 30]}
+
+# small volume
+l2464f211b600m00507m0507m628:
+    mres:
+        0.00600:
+            meta_id: {"mp": 49, "pp": 50}
+            priors: {'mres': [4E-4, 4E-5]}
+            trange: {"tmin": [8,8], "tmax": [56,56]}
+    pion:
+        0.006_0.006:
+            meta_id: {"SS": 97, "PS": 98}
+            priors:
+                1: {"E0": [0.134, 0.0134], "Z0_s": [6E-3, 6E-4], "Z0_p": [1.17E-1, 1.17E-2]}
+                2: {"E1":  [-1.3, 0.7],     "Z1_s":[0.0, 3E-2], "Z1_p":        [0.0, 1.17]}
+            trange: {"tmin": [7,7], "tmax": [30, 30]}
+
+# 135 MeV
+l4864f211b600m00184m0507m628:
+    mres:
+        0.00195:
+            meta_id: {"mp": 21, "pp": 22}
+            priors: {'mres': [1.6E-4, 1.6E-5]}
+            trange: {"tmin": [8,8], "tmax": [56,56]}
+    pion:
+        0.00195_0.00195:
+            meta_id: {"SS": 41, "PS": 42}
+            priors:
+                1: {"E0": [8E-2, 8E-3], "Z0_s": [2.8E-3, 2.8E-4], "Z0_p": [1.26E-1, 1.26E-2]}
+                2: {"E1":  [-1.8, 0.7],     "Z1_s":[0.0, 1.4E-2], "Z1_p":        [0.0, 1.26]}
+            trange: {"tmin": [7,7], "tmax": [30, 30]}
+
+############################
+##### a = 0.15fm ###########
+############################
+# 310 MeV
+l1648f211b580m013m065m838:
+    mres:
+        0.0158:
+            meta_id: {"mp": 57, "pp": 58}
+            priors: {'mres': [9.6E-4, 9.6E-5]}
+            trange: {"tmin": [6,6], "tmax": [42,42]}
+    pion:
+        0.0158_0.0158:
+            meta_id: {"SS": 113, "PS": 114}
+            priors:
+                1: {"E0": [2.36E-1, 2.36E-2], "Z0_s": [2.18E-2, 2.18E-3], "Z0_p": [1.775E-1, 1.775E-2]}
+                2: {"E1":  [-0.75, 0.7],           "Z1_s":[0.0, 1.09E-1], "Z1_p":         [0.0, 1.775]}
+            trange: {"tmin": [4,4], "tmax": [20, 20]}
+# 220 MeV
+l2448f211b580m0064m0640m828:
+    mres:
+        0.00712:
+            meta_id: {"mp": 61, "pp": 62}
+            priors: {'mres': [5.8E-4, 5.8E-5]}
+            trange: {"tmin": [6,6], "tmax": [42,42]}
+    pion:
+        0.00712_0.00712:
+            meta_id: {"SS": 121, "PS": 122}
+            priors:
+                1: {"E0": [1.66E-1, 1.66E-2], "Z0_s": [1.776E-2, 1.776E-3], "Z0_p": [1.845E-1, 1.845E-2]}
+                2: {"E1":  [-1.1, 0.7],           "Z1_s":[0.0, 8.88E-2], "Z1_p":         [0.0, 1.845]}
+            trange: {"tmin": [4,4], "tmax": [20, 20]}
+
+# 135 MeV
+l3248f211b580m00235m0647m831:
+    mres:
+        0.00216:
+            meta_id: {"mp": 45, "pp": 46}
+            priors: {'mres': [2.6E-4, 2.6E-5]}
+            trange: {"tmin": [6,6], "tmax": [42,42]}
+    pion:
+        0.00216_0.00216:
+            meta_id: {"SS": 89, "PS": 90}
+            priors:
+                1: {"E0": [1E-1, 1E-2], "Z0_s": [2E-2, 2E-3], "Z0_p": [2.14E-1, 2.14E-2]}
+                2: {"E1":  [-1.6, 0.7], "Z1_s":[0.0, 1E-1], "Z1_p":         [0.0, 2.14]}
+            trange: {"tmin": [4,4], "tmax": [20, 20]}

@@ -20,14 +20,14 @@ if __name__=="__main__":
     params = yaml.load(f)
     f.close()
     # decay parameter file
-    f = open('./decay.yml','r')
+    f = open('./decay_flow.yml','r')
     decay_params = yaml.load(f)
     f.close()
     decay_params['decay_ward_fit']['ens'] = params['grand_ensemble']['ens']
     decay_params['decay_ward_fit']['ml'] = params['grand_ensemble']['ml']
     decay_params['decay_ward_fit']['ms'] = params['grand_ensemble']['ms']
     # axial parameter file
-    f = open('./axial.yml','r')
+    f = open('./axial_flow.yml','r')
     axial_params = yaml.load(f)
     f.close()
     axial_params['axial_fit']['ens'] = params['grand_ensemble']['ens']
@@ -105,9 +105,9 @@ if __name__=="__main__":
     #kafit = decay.fit_decay_bs(psql,decay_params,'kaon',gvss_kaon,gvps_kaon)
     # axial
     aldata = np.concatenate((gvss_pion, gvps_pion, gvll))
-    alfit = axial.fit_axial(psql,axial_params,decay_params,'axial_ll',aldata) #,pifit['meson_fit'].p)
+    alfit = axial.fit_axial(psql,axial_params,decay_params,'axial_ll',aldata,flow=True) #,pifit['meson_fit'].p)
     asdata = np.concatenate((gvss_kaon, gvps_kaon, gvls))
-    asfit = axial.fit_axial(psql,axial_params,decay_params,'axial_ls',asdata) #,kafit['meson_fit'].p)
+    asfit = axial.fit_axial(psql,axial_params,decay_params,'axial_ls',asdata,flow=True) #,kafit['meson_fit'].p)
     # mN and gA
     mNfit = gA.fit_proton(psql,gA_params,gvgAboot0,twopt=True)
     # chipt parameters

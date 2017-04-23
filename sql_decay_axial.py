@@ -30,7 +30,7 @@ def read_axial(psql,params,meson):
     #data= psql.data('dwhisq_corr_meson',axialp['meta_id']['PS'])
     return data
 
-def fit_axial(psql,params,dparams,meson,datagv,inherit_prior=None):
+def fit_axial(psql,params,dparams,meson,datagv,inherit_prior=None,flow=False):
     if meson=='axial_ll':
         mq1 = params['axial_fit']['ml']
         mq2 = mq1
@@ -83,8 +83,10 @@ def fit_axial(psql,params,dparams,meson,datagv,inherit_prior=None):
     dtrange = mesonp['trange']
     # fit
     fitfcn = c51.fit_function(T,params['axial_fit']['nstates'])
-    boot0fit = c51.fitscript_v3(dtrange,trange,T,datagv,prior,fitfcn.dwhisq_twopt_axial,axial=True)
-    #boot0fit = c51.fitscript_v3(dtrange,trange,T,datagv,prior,fitfcn.dwhisq_twopt_osc_axial,axial=True)
+    if flow:
+        boot0fit = c51.fitscript_v3(dtrange,trange,T,datagv,prior,fitfcn.dwhisq_twopt_osc_axial,axial=True)
+    else:
+        boot0fit = c51.fitscript_v3(dtrange,trange,T,datagv,prior,fitfcn.dwhisq_twopt_axial,axial=True)
     #print boot0fit['rawoutput'][0]
     if params['flags']['stability_plot']:
         c51.stability_plot(boot0fit,'E0','%s_%s' %(str(mq1),str(mq2)))
