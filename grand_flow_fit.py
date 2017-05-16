@@ -26,6 +26,7 @@ if __name__=="__main__":
     decay_params['decay_ward_fit']['ens'] = params['grand_ensemble']['ens']
     decay_params['decay_ward_fit']['ml'] = params['grand_ensemble']['ml']
     decay_params['decay_ward_fit']['ms'] = params['grand_ensemble']['ms']
+    decay_params['flags']['plot_data'] = False
     # axial parameter file
     f = open('./axial_flow.yml','r')
     axial_params = yaml.load(f)
@@ -33,12 +34,14 @@ if __name__=="__main__":
     axial_params['axial_fit']['ens'] = params['grand_ensemble']['ens']
     axial_params['axial_fit']['ml'] = params['grand_ensemble']['ml']
     axial_params['axial_fit']['ms'] = params['grand_ensemble']['ms']
+    axial_params['flags']['plot_data'] = False
     # gA parameter file
-    f = open('./fh.yml','r')
+    f = open('./fh_flow.yml','r')
     gA_params = yaml.load(f)
     f.close()
     gA_params['gA_fit']['ens'] = params['grand_ensemble']['ens']
     gA_params['gA_fit']['ml'] = params['grand_ensemble']['ml']
+    gA_params['flags']['plot_data'] = False
     # log in sql #
     psqlpwd = pwd.passwd()
     psql = sql.pysql('cchang5','cchang5',psqlpwd)
@@ -80,6 +83,7 @@ if __name__=="__main__":
     print "len gAboot0:", np.shape(gAboot0)
     # concatenate
     boot0 = np.concatenate((lmp,lpp,smp,spp,ss_pion,ps_pion,ss_kaon,ps_kaon,ll,ls,gAboot0),axis=1)
+    #boot0 = np.concatenate((lmp,lpp,smp,spp,ss_pion,ps_pion,ss_kaon,ps_kaon,ll,ls),axis=1)
     #if len(boot0) > 200:
     #    boot0 = boot0[0::5,:]
     # correlated covariance
@@ -117,19 +121,35 @@ if __name__=="__main__":
     result['fpi'] = decay.decay_constant(decay_params,alfit['axial_fit'].p['Z0_p'],alfit['axial_fit'].p['E0'],mresl['mres_fit'].p['mres'])/np.sqrt(2)
     result['fka'] = decay.decay_constant(decay_params,asfit['axial_fit'].p['Z0_p'],asfit['axial_fit'].p['E0'],mresl['mres_fit'].p['mres'],mress['mres_fit'].p['mres'])/np.sqrt(2)
     result['fk/fpi'] = result['fka']/result['fpi']
-    result['fpi4D'] = axial.fphi(alfit['axial_fit'].p['F0'], alfit['axial_fit'].p['E0'])/np.sqrt(2)
-    result['fka4D'] = axial.fphi(asfit['axial_fit'].p['F0'], asfit['axial_fit'].p['E0'])/np.sqrt(2)
+    result['fpi4D'] = axial.fphi(alfit['axial_fit'].p['F0'], alfit['axial_fit'].p['E0'])
+    result['fka4D'] = axial.fphi(asfit['axial_fit'].p['F0'], asfit['axial_fit'].p['E0'])
     result['ZAll'] = result['fpi']/result['fpi4D']
     result['ZAls'] = result['fka']/result['fka4D']
-    #result['mN'] = mNfit['nucleon_fit'].p['E0']
-    #result['mN/fpi'] = result['mN']/result['fpi']
+    result['mN'] = mNfit['nucleon_fit'].p['E0']
+    result['mN/fpi'] = result['mN']/result['fpi']
     print "ZAll  :", result['ZAll']
     print "ZAls  :", result['ZAls']
     print "fpi   :", result['fpi']
     print "fka   :", result['fka']
-    #print "mN    :", result['mN']
+    print "mN    :", result['mN']
     print "fk/fpi:", result['fk/fpi']
-    #print "mN/fpi:", result['mN/fpi']
+    print "mN/fpi:", result['mN/fpi']
+    # for andre
+    andre = dict()
+    andre['mpi'] = result['mpi'].mean
+    andre['mka'] = result['mka'].mean
+    andre['fpi'] = result['fpi'].mean
+    andre['fka'] = result['fka'].mean
+    andre['mN'] = result['mN'].mean
+    andre['ZAll'] = result['ZAll'].mean
+    andre['ZAls'] = result['ZAls'].mean
+    andre['key'] = ['mpi', 'mka', 'fpi', 'fka', 'mN', 'ZAll', 'ZAls']
+    andre['cov'] = gv.evalcov([result['mpi'],result['mka'],result['fpi'],result['fka'],result['mN'],result['ZAll'],result['ZAls']]).tolist()
+    andre['corr'] = gv.evalcorr([result['mpi'],result['mka'],result['fpi'],result['fka'],result['mN'],result['ZAll'],result['ZAls']]).tolist()
+    f = open('./flow_result/%s_%s_%s.yml' %(params['grand_ensemble']['ens']['tag'], params['grand_ensemble']['ml'], params['grand_ensemble']['ms']), 'w+')
+    yaml.dump(andre, f)
+    f.flush()
+    f.close()
     # write output
     #pickle.dump(result, open('./pickle_result/flow%s_%s.pickle' %(params['grand_ensemble']['flow'], params['grand_ensemble']['ens']['tag']), 'wb'))
     #g = pickle.load(open('./pickle_result/flow%s_%s.pickle' %((params['grand_ensemble']['flow'],params['grand_ensemble']['ens']['tag']), 'rb'))

@@ -386,7 +386,6 @@ def fitscript_v2(trange,T,data,priors,fcn,init=None,basak=None,bayes=True):
 
 def fitscript_v3(trange,fhtrange,T,data,priors,fcn,init=None,basak=None,axial=False,bayes=True):
     sets = len(data)/T
-    #print "sets:", sets
     pmean = []
     psdev = []
     post = []

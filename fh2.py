@@ -447,13 +447,18 @@ if __name__=='__main__':
     psqlpwd = pwd.passwd()
     psql = sql.pysql('cchang5','cchang5',psqlpwd)
     # fit gA
-    boot0 = read_gA_bs(psql,params)
+    if params['flags']['fit_gA']:
+        boot0 = read_gA_bs(psql,params)
+    else:
+        boot0 = read_gA_bs(psql,params,twopt=True)
     # bin
     boot0 = np.array(gv.dataset.bin_data(boot0,binsize=params['gA_fit']['bin']))
     print "boot0 shape:", np.shape(boot0)
     gvboot0 = c51.make_gvars(boot0)
-    fit_proton(psql,params,gvboot0)
-    res = fit_gA(psql,params,gvboot0)
+    if params['flags']['fit_twopt']:
+        fit_proton(psql,params,gvboot0,twopt=True)
+    if params['flags']['fit_gA']:
+        res = fit_gA(psql,params,gvboot0)
     # bootstrap gA
     if params['flags']['bootstrap']:
         params['flags']['bayes'] = False

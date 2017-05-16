@@ -84,7 +84,7 @@ def bootstrap(data,nbs):
 
 if __name__=='__main__':
     # options
-    t = 10 # time slice plotted
+    tmax = 30 # time slice plotted
     nbs = 10000 # bootstrap sampling for mean
     # read master
     f = open('./fh.yml','r')
@@ -101,5 +101,6 @@ if __name__=='__main__':
     # bootstrap this
     corrbs = bootstrap(corr,nbs)
     # plot histogram
-    plot_histogram(corr[:,t], corrbs[:,t], t, 't=%s' %str(t), filename)
-    plt.show()
+    for t in range(tmax):
+        plot_histogram(corr[:,t], corrbs[:,t], t, 't=%s' %str(t), filename)
+        plt.show()

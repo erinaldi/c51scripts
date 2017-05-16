@@ -13,7 +13,7 @@ import sql_decay_ward as decay
 
 if __name__=='__main__':
     # read yaml #
-    f = open('./decay.yml','r')
+    f = open('./decay_flow.yml','r')
     decay_params = yaml.load(f)
     f.close()
     ensemble = decay_params['decay_ward_fit']['ens']['tag']
@@ -63,11 +63,11 @@ if __name__=='__main__':
     mresl = decay.fit_mres_bs(psql,decay_params,decay_params['decay_ward_fit']['ml'],gvmpl,gvppl)
     mress = decay.fit_mres_bs(psql,decay_params,decay_params['decay_ward_fit']['ms'],gvmps,gvpps)
     # meson
-    pionfit = decay.fit_decay_bs(psql,decay_params,'pion',gvss_pion,gvps_pion)
-    kaonfit = decay.fit_decay_bs(psql,decay_params,'kaon',gvss_kaon,gvps_kaon)
+    pionfit = decay.fit_decay_bs(psql,decay_params,'pion',gvss_pion,gvps_pion,flow=True)
+    kaonfit = decay.fit_decay_bs(psql,decay_params,'kaon',gvss_kaon,gvps_kaon,flow=True)
     # make 5D decay constant
-    fkaon = decay.decay_constant(decay_params, kaonfit['meson_fit'].p['Z0_p'], kaonfit['meson_fit'].p['E0'], mresl['mres_fit'].p['mres'], mress['mres_fit'].p['mres'])
-    fpion = decay.decay_constant(decay_params, pionfit['meson_fit'].p['Z0_p'], pionfit['meson_fit'].p['E0'], mresl['mres_fit'].p['mres'])
+    fkaon = decay.decay_constant(decay_params, kaonfit['meson_fit'].p['Z0_p'], kaonfit['meson_fit'].p['E0'], mresl['mres_fit'].p['mres'], mress['mres_fit'].p['mres'])/np.sqrt(2)
+    fpion = decay.decay_constant(decay_params, pionfit['meson_fit'].p['Z0_p'], pionfit['meson_fit'].p['E0'], mresl['mres_fit'].p['mres'])/np.sqrt(2)
     mkaon = kaonfit['meson_fit'].p['E0']
     mpion = pionfit['meson_fit'].p['E0']
     # result
@@ -89,6 +89,6 @@ if __name__=='__main__':
     # write output
     result = {ensemble:{'data':data, 'priors':priors}}
     print result
-    pickle.dump(result, open('./pickle_result/fkfpi_%s.pickle' %ensemble, 'wb'))
-    g = pickle.load(open('./pickle_result/fkfpi_%s.pickle' %ensemble, 'rb'))
-    print g
+    #pickle.dump(result, open('./pickle_result/fkfpi_%s.pickle' %ensemble, 'wb'))
+    #g = pickle.load(open('./pickle_result/fkfpi_%s.pickle' %ensemble, 'rb'))
+    #print g

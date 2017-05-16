@@ -59,28 +59,35 @@ def fit_axial(psql,params,dparams,meson,datagv,inherit_prior=None,flow=False):
         meff_ps = eff.effective_mass(ax[1:T/2], 1, 'cosh')
         xlim = [2, len(meff_ps)/2-2]
         ylim = c51.find_yrange(meff_ps, xlim[0], xlim[1])
-        c51.scatter_plot(np.arange(len(meff_ps)), meff_ps, '%s_%s ps effective mass' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
+        c51.scatter_plot(np.arange(len(meff_ps)), meff_ps, '$%s %s$ ps effective mass' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
         plt.show()
         # scaled correlator
-        E0 = axialp['priors'][1]['E0'][0]
+        E0 = mesonp['priors'][1]['E0'][0]
         print E0
-        z_s = np.sqrt(eff.scaled_correlator(SS, E0, phase=1.0))
-        scaled_ax = eff.scaled_correlator(ax, E0, phase=1.0)/z_s
+        z_s = np.sqrt(eff.scaled_correlator_v2(SS, E0, phase=1.0))
+        scaled_ax = eff.scaled_correlator_v2(ax, E0, phase=1.0)/z_s
         ylim = c51.find_yrange(scaled_ax, xlim[0], xlim[1])
-        c51.scatter_plot(np.arange(len(scaled_ax)), scaled_ax, '%s_%s f0 scaled axial correlator' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
+        c51.scatter_plot(np.arange(len(scaled_ax)), scaled_ax, '$%s %s$ f0 scaled axial correlator' %(str(mq1),str(mq2)), xlim = xlim, ylim = ylim)
         plt.show()
     # read priors
     if inherit_prior==None:
-        prior = c51.meson_priors(axialp['priors'],nstates)
+        prior = c51.meson_priors(mesonp['priors'],nstates)
+        axp = c51.meson_priors(axialp['priors'],nstates)
+        for k in axp.keys():
+            prior[k] = axp[k]
         prior = c51.dict_of_tuple_to_gvar(prior)
     else:
-        prior = c51.meson_priors(axialp['priors'],nstates)
+        prior = c51.meson_priors(mesonp['priors'],nstates)
+        axp = c51.meson_priors(axialp['priors'],nstates)
+        for k in axp.keys():
+            prior[k] = axp[k]
         prior = c51.dict_of_tuple_to_gvar(prior)
         for k in inherit_prior.keys():
             prior[k] = inherit_prior[k]
     # read trange
     trange  = axialp['trange']
     dtrange = mesonp['trange']
+    print "PRIOR:", prior
     # fit
     fitfcn = c51.fit_function(T,params['axial_fit']['nstates'])
     if flow:
@@ -114,15 +121,18 @@ def fit_axial(psql,params,dparams,meson,datagv,inherit_prior=None,flow=False):
     return {'axial_fit': boot0fit['rawoutput'][0]}
 
 def fphi(gvF0, gvE0):
-    return -1.0*gvF0*np.sqrt(2.0/gvE0)
+    return -1.0*gvF0*np.sqrt(1.0/gvE0)
 
 if __name__=='__main__':
     # read parameters
-    f = open('./axial.yml','r')
+    f = open('./axial_flow.yml','r')
     params = yaml.load(f)
     f.close()
-    f = open('./decay.yml','r')
+    f = open('./decay_flow.yml','r')
     dparams = yaml.load(f)
+    dparams['decay_ward_fit']['ens'] = params['axial_fit']['ens']
+    dparams['decay_ward_fit']['ml'] = params['axial_fit']['ml']
+    dparams['decay_ward_fit']['ms'] = params['axial_fit']['ms']
     f.close()
 
     # yaml entires
@@ -133,24 +143,19 @@ if __name__=='__main__':
     # read data
     ll = read_axial(psql, params, 'axial_ll')
     ls = read_axial(psql, params, 'axial_ls')
-    #ll = ll[:200]
-    #ls = ls[:200]
     # read two-point
     pionSS, pionPS = decay.read_decay_bs(psql,dparams,'pion')
     kaonSS, kaonPS = decay.read_decay_bs(psql,dparams,'kaon')
-    #pionSS = pionSS[:200]
-    #pionPS = pionPS[:200]
-    #kaonSS = kaonSS[:200]
-    #kaonPS = kaonPS[:200]
     # axial_ll
     print np.shape(pionSS), np.shape(pionPS), np.shape(ll)
-    ll = np.concatenate((pionSS, pionPS, ll), axis=1)
-    llgv = c51.make_gvars(ll)
-    fpi = fit_axial(psql,params,dparams,'axial_ll',llgv)
+    if params['flags']['fit_axial_ll']:
+        ll = np.concatenate((pionSS, pionPS, ll), axis=1)
+        llgv = c51.make_gvars(ll)
+        fpi = fit_axial(psql,params,dparams,'axial_ll',llgv,flow=True)
+        print fphi(fpi['axial_fit'].p['F0'],fpi['axial_fit'].p['E0'])
     # axial_ls
-    ls = np.concatenate((kaonSS, kaonPS, ls), axis=1)
-    lsgv = c51.make_gvars(ls)
-    fka = fit_axial(psql,params,dparams,'axial_ls',lsgv)
-    # print result
-    print fpi
-    print fka
+    if params['flags']['fit_axial_ls']:
+        ls = np.concatenate((kaonSS, kaonPS, ls), axis=1)
+        lsgv = c51.make_gvars(ls)
+        fka = fit_axial(psql,params,dparams,'axial_ls',lsgv,flow=True)
+        print fphi(fka['axial_fit'].p['F0'],fka['axial_fit'].p['E0'])

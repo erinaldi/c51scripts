@@ -259,6 +259,7 @@ if __name__=='__main__':
         SSka, PSka = read_decay_bs(psql,params,'kaon')
         gv_SS, gv_PS = concatgv(SSka, PSka)
         resk = fit_decay_bs(psql,params,'kaon', gv_SS, gv_PS)
+        print resk['meson_fit']
     ## fit etas
     if params['flags']['fit_etas']:
         SSes, PSes = read_decay_bs(psql,params,'etas')
